@@ -114,19 +114,22 @@ def main(argv):
            if (header[j] in imaging_dict):
               dobj2 = {}
               dobj2["name"]  = header[j] 
-              dobj2["value"] = readContent[j] 
+              dobj2["value"] = float(readContent[j]) 
               dobj2["type"]  = imaging_dict[header[j]]
               dobj_img.append(dobj2)
            elif (header[j] in genomic_dict):
               dobj2 = {}
               dobj2["name"]  = header[j]
-              dobj2["value"] = readContent[j]     
+              dobj2["value"] = int(readContent[j])     
               dobj2["type"]  = genomic_dict[header[j]]
               dobj_gen.append(dobj2) 
            else:
               dobj2 = {}
               dobj2["name"]  = header[j]
-              dobj2["value"] = readContent[j]     
+              if (readContent[j].isdigit()):
+                dobj2["value"] = float(readContent[j])
+              else:
+                dobj2["value"] = readContent[j]
               dobj2["type"]  = "clinical"
               dobj_cli.append(dobj2)
        dobj["imaging_features"]  = dobj_img
