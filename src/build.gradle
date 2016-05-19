@@ -1,0 +1,14 @@
+allprojects {
+	apply plugin: 'java'
+	repositories {
+		mavenCentral()
+   		maven { url 'https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/' }
+		maven { url 'http://artifacts.openmicroscopy.org/artifactory/maven/' }
+	}
+
+	libsDirName = "$rootDir/build/libs/"
+	clean {
+		"$rootDir/build/libs"
+	}
+}
+
