@@ -2,6 +2,7 @@ package u24.mongodb.nuclear.segmentation;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.ArrayList;
 
 class ProcessFileThread implements Runnable {
     private Thread myThread;
@@ -24,6 +25,8 @@ class ProcessFileThread implements Runnable {
 
 public class MongoSimpleLoaderThreaded {
 	
+	private static InputParameters inputParams;
+	
 	private static ResultsDatabase[] setupDatabaseConnections(int numThreads, String segdbServer) {
 		ResultsDatabase[] segDB = new ResultsDatabase[numThreads];
 		if (segdbServer!=null) {
@@ -36,8 +39,8 @@ public class MongoSimpleLoaderThreaded {
         return segDB;
 	}
 	
-	private static InputParameters setInputParameters() {
-		InputParameters inputParams = new InputParameters();
+	private static boolean setInputParameters() {
+		inputParams = new InputParameters();
     	
     	inputParams.dbServer  	= CommandLineArguments.getDBServer();
       
@@ -57,6 +60,8 @@ public class MongoSimpleLoaderThreaded {
         
         inputParams.caseID		= CommandLineArguments.getCaseID();
         inputParams.subjectID	= CommandLineArguments.getSubjectID();
+        
+        inputParams.isQuip = CommandLineArguments.isQuip();
         
         inputParams.doNormalize   = CommandLineArguments.isNormalize();
         inputParams.selfNormalize = CommandLineArguments.isSelfNormalize();
@@ -78,24 +83,25 @@ public class MongoSimpleLoaderThreaded {
         if (inputParams.outFolder!=null) {
         	if (inputParams.inputFile==null) {
         		System.err.println("Error: input file name is missing.");
-        		return null;
+        		return false;
         	} else { 
         		try {
         			String fileName = (new File(inputParams.inputFile)).getName();
         			inputParams.outFileWriter = new FileWriter(inputParams.outFolder + "/" + fileName + ".json");
         		} catch (Exception e) {
         			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-        			return null;
+        			return false;
         		}
         	}
         }
 	        
-        return inputParams;
+        return true;
 	}
 	
 	public static void handleFile(ProcessFile process, int numThreads) {
 		try {
-			InputParameters inputParams = setInputParameters();
+			if (!setInputParameters()) 
+				return;
 
 			if (inputParams.inputList==null || inputParams.outFileWriter!=null) 
 				numThreads = 1;  // if a single file or output to file, use one thread
@@ -103,43 +109,41 @@ public class MongoSimpleLoaderThreaded {
 			ResultsDatabase[] segDB = setupDatabaseConnections(numThreads,inputParams.dbServer);
 			ProcessFileThread[] procFile = new ProcessFileThread[numThreads];
 
-			AnalysisExecutionMetadata execMeta = new AnalysisExecutionMetadata(inputParams.execID, 
-					inputParams.studyID, inputParams.batchID,  inputParams.tagID, inputParams.execTitle, 
-					inputParams.execType, inputParams.execComp);
-
 			IterateInputData iter = new IterateInputData();
 			iter.setIterator(inputParams);
 			
+			InputListArray fileList = new InputListArray();
+			if (fileList.setListArray(inputParams)==false) 
+				return; 
+			ArrayList<FileParameters> fileArray = fileList.getListArray();
+			
 			int thread_id = 0; 
 			int fi = 0;			
-			while (iter.hasNext()) {
-				FileParameters fileParams = new FileParameters(); 
-				String[] currLine = iter.next().split(",");
-				if (currLine.length!=5) {
-					System.err.println("Missing parameters in input file list [studyId,caseId/imageId,fileName,shiftX,shiftY].");
-					return;
+			while (fi<fileArray.size()) {
+				FileParameters fileParams = fileArray.get(fi);
+				if (inputParams.isQuip==false) {
+					System.out.println("Processing[" + fi + "]: " 
+							+ " Filename: " + fileParams.getFileName() 
+							+ " SubjectID: " + fileParams.getSubjectId() 
+							+ " CaseID: " + fileParams.getCaseId());
 				} else {
-					fileParams.setSubjectId(currLine[0]);
-					fileParams.setCaseId(currLine[1]);
-					fileParams.setFileName(currLine[2]);
-					fileParams.setShiftX(Integer.parseInt(currLine[3]));
-					fileParams.setShiftY(Integer.parseInt(currLine[4]));
+					System.out.println("Processing[" + fi + "]: " 
+							+ " Filename: " + fileParams.getFileName());
 				}
-
-				System.out.println("Processing[" + fi + "]: " 
-						+ " Filename: " + fileParams.getFileName() 
-						+ " SubjectID: " + fileParams.getSubjectId() 
-						+ " CaseID: " + fileParams.getCaseId());
 
 				int check_done = 0;
 				while (check_done == 0) {
 					if (procFile[thread_id] == null || !procFile[thread_id].isAlive()) {
-						if (process instanceof ProcessTSVQuipFile) {
-							process = new ProcessTSVQuipFile(fileParams, execMeta, inputParams, segDB[thread_id]); 
+						if (process instanceof ProcessTSVFeaturePolygonFile) {
+							process = new ProcessTSVFeaturePolygonFile(fileParams, inputParams, segDB[thread_id]); 
 						} else if (process instanceof ProcessCSVFeaturePolygonFile) {
-							process = new ProcessCSVFeaturePolygonFile(fileParams, execMeta, inputParams, segDB[thread_id]);
+							process = new ProcessCSVFeaturePolygonFile(fileParams, inputParams, segDB[thread_id]);
 						} else if (process instanceof ProcessBinaryMaskFile) {
-							process = new ProcessBinaryMaskFile(fileParams, execMeta, inputParams, segDB[thread_id]);
+							process = new ProcessBinaryMaskFile(fileParams, inputParams, segDB[thread_id]);
+						} else if (process instanceof ProcessQuipMaskFile) {
+							process = new ProcessQuipMaskFile(fileParams, inputParams, segDB[thread_id]);
+						} else if (process instanceof ProcessQuipCSVFile) {
+							process = new ProcessQuipCSVFile(fileParams, inputParams, segDB[thread_id]);
 						}
 						procFile[thread_id] = new ProcessFileThread(process);
 						check_done = 1;
@@ -191,8 +195,8 @@ public class MongoSimpleLoaderThreaded {
 		String execName    = CommandLineArguments.getExecutionTitle();
 		String colorVal    = CommandLineArguments.getColor();
 		String studyId     = CommandLineArguments.getStudyID();
-        String batchId  = CommandLineArguments.getBatchID();
-        String tagId  = CommandLineArguments.getTagID();
+        String batchId     = CommandLineArguments.getBatchID();
+        String tagId       = CommandLineArguments.getTagID();
 
 		numThreads = 1;
 		try {
@@ -277,11 +281,19 @@ public class MongoSimpleLoaderThreaded {
 
     	try {
     		if (CommandLineArguments.isTSV()) {
-    			handleFile(new ProcessTSVQuipFile(),numThreads);
+    			handleFile(new ProcessTSVFeaturePolygonFile(),numThreads);
     		} else if (CommandLineArguments.isCSV()) {
-    			handleFile(new ProcessCSVFeaturePolygonFile(),numThreads);
+    			if (CommandLineArguments.isQuip()) {
+    	   			handleFile(new ProcessQuipCSVFile(),numThreads);
+    			} else {
+    				handleFile(new ProcessCSVFeaturePolygonFile(),numThreads);
+    			}
     		} else if (CommandLineArguments.isMaskFile()) {
-    			handleFile(new ProcessBinaryMaskFile(),numThreads);
+    			if (CommandLineArguments.isQuip()) {
+    				handleFile(new ProcessQuipMaskFile(),numThreads);
+    			} else {
+    				handleFile(new ProcessBinaryMaskFile(),numThreads);
+    			}
     		} else if (CommandLineArguments.isAperio()) {
     			handleAperioXMLFile(numThreads);
     		} else {

@@ -1,10 +1,11 @@
 package u24.mongodb.nuclear.segmentation;
 
 import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -26,7 +27,7 @@ import com.vividsolutions.jts.geom.Geometry;
 /**
  * Comma Separated Values file handler.
  */
-public class ProcessCSVFeaturePolygonFile implements ProcessFile {
+public class ProcessQuipCSVFile implements ProcessFile {
 	InputParameters inputParams;	
 	private String fileName;
 	private String caseId;
@@ -39,11 +40,13 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
 	private double simplifyTolerance;
 	private GeometryFactory geomFactory;
 	
+	private DBObject quipMeta;
+	
 	private final static Charset ENCODING = StandardCharsets.UTF_8;
 	private final static int     SIMPLIFY_POINTS_LIMIT = 20;
 	private final static double  SIMPLIFY_TOLERANCE    = 0.1;
 	
-	public ProcessCSVFeaturePolygonFile() {
+	public ProcessQuipCSVFile() {
 		this.fileName = null;
 		this.subjectId = null;		
 		this.caseId = null;
@@ -53,7 +56,7 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
 		this.geomFactory = null; 
 	}
 
-	public ProcessCSVFeaturePolygonFile(String fileName, String subjectId, String caseId,
+	public ProcessQuipCSVFile(String fileName, String subjectId, String caseId,
 			AnalysisExecutionMetadata execMeta, InputParameters inputParams, ResultsDatabase segDB) {
 		this.fileName = fileName;
 		this.subjectId = subjectId;		
@@ -66,7 +69,7 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
 		this.geomFactory = new GeometryFactory();
 	}
 	
-	public ProcessCSVFeaturePolygonFile(FileParameters fileParams, 
+	public ProcessQuipCSVFile(FileParameters fileParams,
 			InputParameters inputParams, ResultsDatabase segDB) {
 		this.fileName = fileParams.getFileName();
 		this.subjectId = fileParams.getSubjectId();		
@@ -76,10 +79,6 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
 		this.numPointsLimit = SIMPLIFY_POINTS_LIMIT;
 		this.simplifyTolerance = SIMPLIFY_TOLERANCE;
 		this.geomFactory = new GeometryFactory();
-
-		this.execMeta = new AnalysisExecutionMetadata(inputParams.execID, 
-				inputParams.studyID, inputParams.batchID,  inputParams.tagID, inputParams.execTitle, 
-				inputParams.execType, inputParams.execComp);
 	}
 
 	public boolean isNumeric(String str) {
@@ -135,46 +134,42 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
 	 */
 	public void processFile() {
 		try {
-			double objective = 40;
-			double mpp_x = 0.25;
-			double mpp_y = 0.25;
-			double image_width = 1.0; 
-			double image_height = 1.0;
-			String cancer_type = "unknown";
-			if (inputParams.doNormalize) { // normalize using image metadata from the database
-				if (inputParams.getFromDB) {
-					// Query and retrieve image metadata values
-					BasicDBObject imgQuery = new BasicDBObject();
-					imgQuery.put("case_id", caseId);
-					DBObject qryResult = segDB.getImagesCollection().findOne(imgQuery);
-					if (qryResult == null) {
-						System.err.println("ERROR: Cannot find caseid: " + caseId);
-						return;
-					}
-
-					objective = Double.parseDouble(qryResult.get("objective").toString());
-					mpp_x = Double.parseDouble(qryResult.get("mpp_x").toString());
-					mpp_y = Double.parseDouble(qryResult.get("mpp_y").toString());
-					image_width = Double.parseDouble(qryResult.get("width").toString());
-					image_height = Double.parseDouble(qryResult.get("height").toString());
-					cancer_type = qryResult.get("cancer_type").toString();
-
-					if (mpp_x < 0 || mpp_y < 0) {
-						System.err.println("ERROR: Negative mpp values: (" + mpp_x + " " + mpp_y + "). Image: " + caseId);
-						return;
-					}
-
-					// Check if dimensions are negative or zero
-					if (image_width <= 0.0 || image_height <= 0.0) {
-						System.err.println("ERROR: Cannot find caseId: " + caseId);
-						return;
-					}
-				} else {
-					image_width  = inputParams.width;
-					image_height = inputParams.height;
-				}
+			
+			// Read the json file for analysis metadata
+			Path pathMeta = Paths.get(fileName);
+			BufferedReader brMeta = Files.newBufferedReader(pathMeta, ENCODING);
+			if (brMeta==null) {
+				System.err.println("ERROR: Cannot read file: " + fileName);
+				return;
 			}
+			String lineMeta = brMeta.readLine();
+			quipMeta = (DBObject) JSON.parse(lineMeta);
+			if (quipMeta==null) {
+				System.out.println("ERROR: Cannot parse the JSON document file: " + fileName);
+				return;
+			}
+			brMeta.close();
 
+			caseId    = quipMeta.get("case_id").toString();
+			subjectId = quipMeta.get("subject_id").toString();
+			String execId = quipMeta.get("analysis_id").toString();
+			String execTitle = quipMeta.get("analysis_desc").toString();
+			
+			execMeta = new AnalysisExecutionMetadata(execId, inputParams.studyID, inputParams.batchID,  
+					inputParams.tagID, execTitle, inputParams.execType, inputParams.execComp);
+
+			double objective = 40;
+			double mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
+			double mpp_y = mpp_x;
+			double image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
+			double image_height = Double.parseDouble(quipMeta.get("image_height").toString()); 
+			String cancer_type = "unknown";
+			
+			String csvFilePrefix  = quipMeta.get("out_file_prefix").toString();
+			String csvFilePathTmp = (new File(fileName)).getAbsolutePath();
+			String csvFilePath    = csvFilePathTmp.substring(0,csvFilePathTmp.lastIndexOf(File.separator));
+			String csvFile = csvFilePath + "/" + csvFilePrefix + "-features.csv";
+			
 			SimpleImageMetadata imgMeta = new SimpleImageMetadata();
 			imgMeta.setIdentifier(caseId);
 			imgMeta.setCaseid(caseId);
@@ -187,7 +182,7 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
 			imgMeta.setCancertype(cancer_type);
 
 			// Check and register image to analysis mapping information
-			imgExecMap = new ImageExecutionMapping(execMeta, imgMeta, inputParams.colorVal);
+			imgExecMap = new ImageExecutionMapping(execMeta, imgMeta, inputParams.colorVal,quipMeta);
 			if (!imgExecMap.checkExists(segDB)) {
 				segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
 			}
@@ -195,7 +190,7 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
 			// Read input CSV file
 			// Extract header information
 			// Last position is Polygon
-			Path path = Paths.get(fileName);
+			Path path = Paths.get(csvFile);
 			BufferedReader br = Files.newBufferedReader(path, ENCODING);
 			String line = br.readLine();
 			String[] header  = line.split(",");

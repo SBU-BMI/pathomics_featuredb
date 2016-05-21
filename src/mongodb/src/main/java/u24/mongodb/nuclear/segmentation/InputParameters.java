@@ -9,6 +9,7 @@ public class InputParameters {
 	    public String outFolder = null;
 	    public String caseID = null;
 	    public String subjectID = null;
+	    public boolean isQuip = false;
 	    public boolean doNormalize = false;
 	    public boolean selfNormalize = false;
 	    public boolean doSimplify = false;
@@ -34,4 +35,5 @@ public class InputParameters {
 	    public FileWriter outFileWriter = null;
 	    
 	    InputParameters() { }
+	    
 }

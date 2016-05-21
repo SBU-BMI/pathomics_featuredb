@@ -19,6 +19,7 @@ public class CommandLineArguments {
     private static String dbPasswd  = null;
 
     private static String inpType   = null;
+    private static boolean isQuip   = false;
     
     private static String inpList   = null;
     private static String imgFile   = null;
@@ -38,7 +39,7 @@ public class CommandLineArguments {
     private static int shiftY 	= 0;
     
     private static String execID 	= null;
-    private static String studyID 	= null;
+    private static String studyID 	= "main";
 	private static String batchID 	= "b0";
 	private static String tagID 	= "t0";
     private static String execType 	= "computer";
@@ -104,6 +105,13 @@ public class CommandLineArguments {
 				.required(true)
 				.build();
 		allOpts.addOption(inpType);
+		
+		Option isQUIP = Option
+				.builder()
+				.longOpt("quip")
+				.desc("QUIP analysis file collection")
+				.build();
+		allOpts.addOption(isQUIP);
 
 		OptionGroup inpOptGrp = new OptionGroup();
 		Option inpFile = Option.builder()
@@ -216,15 +224,13 @@ public class CommandLineArguments {
 				.desc("Analysis execution id.")
 				.hasArg()
 				.argName("execid")
-				.required(true)
 				.build();
 
 		Option studyID = Option.builder()
 				.longOpt("studyid")
-				.desc("Study id.")
+				.desc("Study id (default: main).")
 				.hasArg()
 				.argName("studyid")
-				.required(true)
 				.build();
 
 		Option batchID = Option.builder()
@@ -367,6 +373,9 @@ public class CommandLineArguments {
 			System.err.println("ERROR: Unknown value: (" + inpType + ") for inptype.");
 			return false;
 		}
+		
+		if (cmdLine.hasOption("quip")) isQuip = true;
+		
 		return true;
 	}
 
@@ -467,6 +476,9 @@ public class CommandLineArguments {
 			doNormalize     = true;
 			doSelfNormalize = true;
 		}
+		if (cmdLine.hasOption("quip")) {
+			doNormalize = true;
+		}
 		return true;
 	}
 
@@ -486,7 +498,14 @@ public class CommandLineArguments {
 	 */
 	private static boolean parseAnalysisProvenanceOptions() {
 
-		execID 	 = cmdLine.getOptionValue("eid");
+		if (!cmdLine.hasOption("quip")) {
+			if (!cmdLine.hasOption("eid")) {
+				System.err.println("ERROR: execution id <eid> is not defined.");
+				return false;
+			} else {
+				execID 	 = cmdLine.getOptionValue("eid");
+			}
+		}
 		studyID  = cmdLine.getOptionValue("studyid");
 
 		if (cmdLine.hasOption("etype"))
@@ -570,6 +589,10 @@ public class CommandLineArguments {
 
 	public static boolean isAperio() {
 		return inpType.equals("aperio");
+	}
+	
+	public static boolean isQuip() {
+		return isQuip;
 	}
 
 	public static String getInpList() {

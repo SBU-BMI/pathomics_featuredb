@@ -1,6 +1,7 @@
 package u24.mongodb.nuclear.segmentation;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.DBCursor;
 
 /**
@@ -12,7 +13,8 @@ public class ImageExecutionMapping {
   
     private String execId;
     private String stdyId;
-    private String caseId; 
+    private String caseId;
+    private String subjectId;
     
     ImageExecutionMapping() { }
   
@@ -38,6 +40,33 @@ public class ImageExecutionMapping {
         execId = execMeta.getIdentifier();
         stdyId = execMeta.getStudyId();
         caseId = imgMeta.getCaseid();
+        subjectId = imgMeta.getSubjectid();
+    }
+
+ 	ImageExecutionMapping(AnalysisExecutionMetadata execMeta,
+            SimpleImageMetadata imgMeta, String color, DBObject quipMeta) {
+    	metadataDoc = new BasicDBObject();
+        metadataDoc.put("color", color);
+        metadataDoc.put("title", execMeta.getTitle());
+
+        BasicDBObject imgmeta_doc = new BasicDBObject();
+        imgmeta_doc.put("subjectid", imgMeta.getSubjectid());
+        imgmeta_doc.put("caseid", imgMeta.getCaseid());
+
+        BasicDBObject provenance_doc = new BasicDBObject();
+        provenance_doc.put("analysis_execution_id",
+                execMeta.getIdentifier());
+        provenance_doc.put("study_id", execMeta.getStudyId());
+        provenance_doc.put("type", execMeta.getSource());
+		provenance_doc.put("quip_meta",quipMeta);
+
+        metadataDoc.put("image", imgmeta_doc);
+        metadataDoc.put("provenance", provenance_doc);
+        
+        execId = execMeta.getIdentifier();
+        stdyId = execMeta.getStudyId();
+        caseId = imgMeta.getCaseid();
+        subjectId = imgMeta.getSubjectid();
     }
 
     /**
@@ -57,6 +86,7 @@ public class ImageExecutionMapping {
     public boolean checkExists(ResultsDatabase db) {
     	BasicDBObject imgQuery = new BasicDBObject();
         imgQuery.put("image.caseid", caseId);
+        imgQuery.put("image.subjectid", subjectId);
         imgQuery.put("provenance.analysis_execution_id",execId);
         imgQuery.put("provenance.study_id", stdyId);
         DBCursor cursor = db.submitAnalysisExecutionMappingQuery(imgQuery);
@@ -93,5 +123,8 @@ public class ImageExecutionMapping {
         metadataDoc.put("image", imgmeta_doc);
         metadataDoc.put("provenance", provenance_doc);
     }
-
+    
+    public void setQuipMetadataDoc(DBObject quipMeta) {
+    	metadataDoc.append("provenance", quipMeta);
+    }
 }

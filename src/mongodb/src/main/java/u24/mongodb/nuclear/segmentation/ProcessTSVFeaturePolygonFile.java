@@ -18,7 +18,7 @@ import java.util.StringTokenizer;
 /**
  * Tab Separated Values file handler.
  */
-public class ProcessTSVQuipFile implements ProcessFile {
+public class ProcessTSVFeaturePolygonFile implements ProcessFile {
     private String fileName;
     private String subjectId;
     private String caseId;
@@ -31,7 +31,7 @@ public class ProcessTSVQuipFile implements ProcessFile {
     private static final Charset ENCODING = StandardCharsets.UTF_8;
     private static final boolean normalize = true;
 
-    public ProcessTSVQuipFile(String fileName,
+    public ProcessTSVFeaturePolygonFile(String fileName,
     		String subjectId,
     		String caseId,
     		AnalysisExecutionMetadata execMeta, 
@@ -46,20 +46,22 @@ public class ProcessTSVQuipFile implements ProcessFile {
     	this.imgExecMap = new ImageExecutionMapping();
     }
 
-    public ProcessTSVQuipFile() {
+    public ProcessTSVFeaturePolygonFile() {
     }
 
-    public ProcessTSVQuipFile(FileParameters fileParams, 
-    		AnalysisExecutionMetadata execMeta, 
+    public ProcessTSVFeaturePolygonFile(FileParameters fileParams, 
     		InputParameters inputParams,
     		ResultsDatabase segDB) {
     	this.fileName = fileParams.getFileName();
     	this.subjectId = fileParams.getSubjectId();
     	this.caseId = fileParams.getCaseId();
-    	this.execMeta = execMeta;
     	this.inputParams = inputParams;
     	this.segDB = segDB;
     	this.imgExecMap = new ImageExecutionMapping();
+    	
+    	this.execMeta = new AnalysisExecutionMetadata(inputParams.execID, 
+				inputParams.studyID, inputParams.batchID,  inputParams.tagID, inputParams.execTitle, 
+				inputParams.execType, inputParams.execComp);
     }
     
     public boolean isNumeric(String str) {

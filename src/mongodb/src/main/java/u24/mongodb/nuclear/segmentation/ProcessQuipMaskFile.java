@@ -1,19 +1,26 @@
 package u24.mongodb.nuclear.segmentation;
 
 import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 
 import org.opencv.core.Point;
 
 import u24.masktopoly.MaskToPoly;
 import u24.masktopoly.PolygonData;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 
-public class ProcessBinaryMaskFile implements ProcessFile {
+public class ProcessQuipMaskFile implements ProcessFile {
 
 	private String fileName;
 	private String subjectId;
@@ -25,12 +32,15 @@ public class ProcessBinaryMaskFile implements ProcessFile {
 	private MaskToPoly maskToPoly;
 	private ImageExecutionMapping imgExecMap;
 	private double min_x, min_y, max_x, max_y;
+	private DBObject quipMeta;
 	
 	private BufferedWriter bufferedWriter;
+	
+	private final static Charset ENCODING = StandardCharsets.UTF_8;
 
-	public ProcessBinaryMaskFile() { }
+	public ProcessQuipMaskFile() { }
 
-	public ProcessBinaryMaskFile(String fileName,
+	public ProcessQuipMaskFile(String fileName,
 			String subjectId, String caseId, 
 			AnalysisExecutionMetadata execMeta,
 			InputParameters inputParams,
@@ -44,13 +54,13 @@ public class ProcessBinaryMaskFile implements ProcessFile {
 		this.shiftY = shiftY;
 		this.segDB = segDB;
 		this.maskToPoly = new MaskToPoly();
-			
+		
 		this.bufferedWriter = null;
 		if (inputParams.outFileWriter!=null) 
 			this.bufferedWriter = new BufferedWriter(inputParams.outFileWriter);
 	}
 	
-	public ProcessBinaryMaskFile(FileParameters fileParams,
+	public ProcessQuipMaskFile(FileParameters fileParams,
 			InputParameters inputParams,
 			ResultsDatabase segDB) {
 		this.fileName = fileParams.getFileName();
@@ -61,10 +71,6 @@ public class ProcessBinaryMaskFile implements ProcessFile {
 		this.inputParams = inputParams;
 		this.segDB = segDB;
 		this.maskToPoly = new MaskToPoly();
-		
-		this.execMeta = new AnalysisExecutionMetadata(inputParams.execID, 
-				inputParams.studyID, inputParams.batchID,  inputParams.tagID, inputParams.execTitle, 
-				inputParams.execType, inputParams.execComp);
 		
 		this.bufferedWriter = null;
 		if (inputParams.outFileWriter!=null) 
@@ -90,48 +96,43 @@ public class ProcessBinaryMaskFile implements ProcessFile {
 	 */
 	 public void processFile() {
 		try {
-			double objective = 40;
-			double mpp_x = 0.25;
-			double mpp_y = 0.25;
-			double image_width = 1.0; 
-			double image_height = 1.0;
-			String cancer_type = "unknown";
-			if (inputParams.doNormalize && (inputParams.selfNormalize==false)) { // normalize using image metadata from the database
-				if (inputParams.getFromDB) {
-					// Query and retrieve image metadata values
-					BasicDBObject imgQuery = new BasicDBObject();
-					imgQuery.put("case_id", caseId);
-					DBObject qryResult = segDB.getImagesCollection().findOne(imgQuery);
-					if (qryResult == null) {
-						System.err.println("ERROR: Cannot find caseid: " + caseId);
-						return;
-					}
-
-					objective = Double.parseDouble(qryResult.get("objective").toString());
-					mpp_x = Double.parseDouble(qryResult.get("mpp_x").toString());
-					mpp_y = Double.parseDouble(qryResult.get("mpp_y").toString());
-					image_width = Double.parseDouble(qryResult.get("width").toString());
-					image_height = Double.parseDouble(qryResult.get("height").toString());
-					cancer_type = qryResult.get("cancer_type").toString();
-
-					if (mpp_x < 0 || mpp_y < 0) {
-						System.err.println("ERROR: Negative mpp values: (" + mpp_x + " " + mpp_y + "). Image: " + caseId);
-						return;
-					}
-
-					// Check if dimensions are negative or zero
-					if (image_width <= 0.0 || image_height <= 0.0) {
-						System.err.println("ERROR: Cannot find caseId: " + caseId);
-						return;
-					}
-				} else {
-					image_width  = inputParams.width;
-					image_height = inputParams.height;
-				}
+			// Read the json file for analysis metadata
+			Path path = Paths.get(fileName);
+			BufferedReader br = Files.newBufferedReader(path, ENCODING);
+			if (br==null) {
+				System.err.println("ERROR: Cannot read file: " + fileName);
+				return;
 			}
-
+			String line = br.readLine();
+			quipMeta = (DBObject) JSON.parse(line);
+			br.close();
+			
+			caseId    = quipMeta.get("case_id").toString();
+			subjectId = quipMeta.get("subject_id").toString();
+			String execId = quipMeta.get("analysis_id").toString();
+			String execTitle = quipMeta.get("analysis_desc").toString();
+			
+			execMeta = new AnalysisExecutionMetadata(execId, inputParams.studyID, inputParams.batchID,  
+					inputParams.tagID, execTitle, inputParams.execType, inputParams.execComp);
+			
+			double objective = 40;
+			double mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
+			double mpp_y = mpp_x;
+			double image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
+			double image_height = Double.parseDouble(quipMeta.get("image_height").toString()); 
+			String cancer_type = "unknown";
+			shiftX  = Integer.parseInt(quipMeta.get("tile_minx").toString());
+			shiftX += Integer.parseInt(quipMeta.get("patch_minx").toString());
+			shiftY  = Integer.parseInt(quipMeta.get("tile_miny").toString());
+			shiftY += Integer.parseInt(quipMeta.get("patch_miny").toString());
+			
+			String maskFilePrefix  = quipMeta.get("out_file_prefix").toString();
+			String maskFilePathTmp = (new File(fileName)).getAbsolutePath();
+			String maskFilePath    = maskFilePathTmp.substring(0,maskFilePathTmp.lastIndexOf(File.separator));
+			String maskFile = maskFilePath + "/" + maskFilePrefix + "-seg.png";
+			
 			// Extract polygons from the mask file
-			maskToPoly.readMask(fileName);
+			maskToPoly.readMask(maskFile);
 			maskToPoly.extractPolygons();
 			if (inputParams.selfNormalize) {
 				image_width  = maskToPoly.getImgWidth();
@@ -150,7 +151,7 @@ public class ProcessBinaryMaskFile implements ProcessFile {
 			imgMeta.setCancertype(cancer_type);
 
 			// Check and register image to analysis mapping information
-			imgExecMap = new ImageExecutionMapping(execMeta, imgMeta, inputParams.colorVal);
+			imgExecMap = new ImageExecutionMapping(execMeta, imgMeta, inputParams.colorVal,quipMeta);
 			if (bufferedWriter==null) { // output to db 
 				if (!imgExecMap.checkExists(segDB)) 
 					segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
