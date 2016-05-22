@@ -16,11 +16,12 @@ print_usage()
 	echo "Usage: run_docker_featuredb.sh -h|<command> [options]"
 	echo "Commands: "
 	echo "	start - start Docker instance"
-	echo "		arguments: <docker name> [--dbpath <host database folder> --qryport <host port for query server> --dbport <host port for mongodb> --dbimage <docker image>]"
+	echo "		arguments: <docker name> [--dbpath <host database folder> --qryport <host port for query server> --dbport <host port for mongodb> --image <docker image> --user <user>]"
 	echo "		default values: "
 	echo "			host port for query server: " $dbQryPort
 	echo "			host port for mongodb: " $dbLocalPort
-	echo "          docker image: " $dbDockerImage
+	echo "          docker image: " $dbDockerImageA
+	echo "          user: run as user in docker. Default: root"
 	echo " "
 	echo "	remove - kill and remove Docker instance" 
 	echo "		arguments: <docker name>"
@@ -83,6 +84,8 @@ shift
 
 # start command 
 if [[ "$dbCmd" = "start" ]]; then
+	dbDockerImage=""
+	dbDockerUser="root"
 	dbDockerName=$1
 	shift
 	if [[ "$dbDockerName" = "" ]]; then
@@ -106,8 +109,12 @@ if [[ "$dbCmd" = "start" ]]; then
 				dbLocalPort="$2"
 				shift # past argument
 			;;
-			--dbimage)
+			--image)
 				dbDockerImage="$2"
+				shift # past argument
+			;;
+			--user)
+				dbDockerUser="$2"
 				shift # past argument
 			;;
 			*)
@@ -118,9 +125,9 @@ if [[ "$dbCmd" = "start" ]]; then
 		shift # past argument or value
 	done
 	if [[ "$dbLocalFolder" = "" ]]; then
-		docker run --name $dbDockerName -it -p $dbLocalPort:27017 -p $dbQryPort:3000 -d $dbDockerImage run_docker_mongodb_query.sh 
+		docker run --name $dbDockerName --user $dbDockerUser:$dbDockerUser -it -p $dbLocalPort:27017 -p $dbQryPort:3000 -d $dbDockerImage run_docker_mongodb_query.sh 
 	else
-		docker run --name $dbDockerName -it -v $dbLocalFolder:/data/db -p $dbLocalPort:27017 -p $dbQryPort:3000 -d $dbDockerImage run_docker_mongodb_query.sh 
+		docker run --name $dbDockerName --user $dbDockerUser:$dbDockerUser -it -v $dbLocalFolder:/data/db -p $dbLocalPort:27017 -p $dbQryPort:3000 -d $dbDockerImage run_docker_mongodb_query.sh 
 	fi
 	if [[ $? == 0 ]]; then 
 		echo "Use the following docker instance name in future interactions with featuredb docker: " $dbDockerName
