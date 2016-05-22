@@ -7,5 +7,4 @@ coll.createIndex( {'provenance.batch_id': 1}, {'name' : "batch_idx"});
 coll.createIndex( {'randval' : 1} );
 var collimg = db.images;
 collimg.createIndex( {'subject_id' : 1, 'caseid_id' : 1}, {unique: true});
-collimg.createIndex( {'case_id' : 1}, {unique: true});
 print('Completed index creation.');

@@ -101,6 +101,7 @@ public class ProcessBinaryMaskFile implements ProcessFile {
 					// Query and retrieve image metadata values
 					BasicDBObject imgQuery = new BasicDBObject();
 					imgQuery.put("case_id", caseId);
+					imgQuery.put("subject_id", subjectId);
 					DBObject qryResult = segDB.getImagesCollection().findOne(imgQuery);
 					if (qryResult == null) {
 						System.err.println("ERROR: Cannot find caseid: " + caseId);
