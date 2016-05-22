@@ -73,7 +73,7 @@ print_usage()
 	echo "				--sizefilter <minSize,maxSize> Filter polygons in CSV files based on polygon area."
 }
 
-if [ "$#" -lt 1 ] || [ "$1" = "-h" ]; then
+if [[ "$#" -lt 1 ]] || [[ "$1" = "-h" ]]; then
 	print_usage;
 	exit 1;
 fi
@@ -82,10 +82,10 @@ dbCmd=$1
 shift
 
 # start command 
-if [ "$dbCmd" = "start" ]; then
+if [[ "$dbCmd" = "start" ]]; then
 	dbDockerName=$1
 	shift
-	if [ "$dbDockerName" = "" ]; then
+	if [[ "$dbDockerName" = "" ]]; then
 		echo "A docker instance name is required."
 		exit 1;
 	fi
@@ -94,7 +94,7 @@ if [ "$dbCmd" = "start" ]; then
 		key="$1"
 
 		case $key in
-			-dbpath)
+			--dbpath)
 				dbLocalFolder="$2"
 				shift # past argument
 			;;
@@ -123,9 +123,9 @@ if [ "$dbCmd" = "start" ]; then
 fi
 
 # remove command
-if [ "$dbCmd" = "remove" ]; then
+if [[ "$dbCmd" = "remove" ]]; then
 	dbDockerName=$1
-	if [ "$dbDockerName" = "" ]; then
+	if [[ "$dbDockerName" = "" ]]; then
 		echo "A docker instance name is required."
 		exit 1;
 	fi
@@ -135,10 +135,10 @@ if [ "$dbCmd" = "remove" ]; then
 fi
 
 # create command
-if [ "$dbCmd" = "create" ]; then
+if [[ "$dbCmd" = "create" ]]; then
 	dbDockerName=$1
 	dbName=$2
-	if [ "$dbDockerName" = "" ] || [ "$dbName" = "" ]; then
+	if [[ "$dbDockerName" = "" ]] || [[ "$dbName" = "" ]]; then
 		echo "Docker instance and database names are required."
 		exit 1;
 	fi
@@ -147,21 +147,21 @@ if [ "$dbCmd" = "create" ]; then
 fi
 
 # image metadata load
-if [ "$dbCmd" = "imgmeta" ]; then
+if [[ "$dbCmd" = "imgmeta" ]]; then
 	dbDockerName=$1
 	dbName=$2
 	inpFile=$3
 	fileType=$4
-	if [ "$dbDockerName" = "" ] || [ "$dbName" = "" ] || [ "$inpFile" = "" ] || [ "$fileType" = ""]; then
+	if [[ "$dbDockerName" = "" ]] || [[ "$dbName" = "" ]] || [[ "$inpFile" = "" ]] || [[ "$fileType" = "" ]]; then
 		echo "Docker instance and database names and image metadata file are required."
 		exit 1;
 	fi
-	if [ "$fileType" != "--metadata" ] && [ "$fileType" != "--image" ]; then
+	if [[ "$fileType" != "--metadata" ]] && [[ "$fileType" != "--image" ]]; then
 		echo "ERROR: Wrong input file type. Should be metadata or image."
 		exit 1;
 	fi
 	
-	if [ "$fileType" = "--metadata" ]; then
+	if [[ "$fileType" = "--metadata" ]]; then
 		tempDir="staging"$$"-"$RANDOM
 		docker exec $dbDockerName mkdir /tmp/$tempDir
 		baseName=$(basename $inpFile);
@@ -172,7 +172,7 @@ if [ "$dbCmd" = "imgmeta" ]; then
 		cancerType=$5
 		subjectId=$6
 		caseId=$7
-		if [ "$cancerType" = "" ] || [ "$subjectId" = "" ] || [ "$caseId" = "" ]; then
+		if [[ "$cancerType" = "" ]] || [[ "$subjectId" = "" ]] || [[ "$caseId" = "" ]]; then
 			echo "ERROR: cancer type, subject id, case id are missing."
 			exit 1;
 		fi
@@ -186,7 +186,7 @@ if [ "$dbCmd" = "imgmeta" ]; then
 fi
 
 # load file
-if [ "$dbCmd" = "loadfile" ]; then
+if [[ "$dbCmd" = "loadfile" ]]; then
 	dbDockerName=$1
 	shift
 	dbName=$1
@@ -195,11 +195,11 @@ if [ "$dbCmd" = "loadfile" ]; then
 	shift
 	dbInpType=$1
 	shift
-	if [ "$dbDockerName" = "" ] || [ "$dbName" = "" ] || [ "$dbInpFile" = "" ] || [ "$dbInpType" = "" ]; then
+	if [[ "$dbDockerName" = "" ]] || [[ "$dbName" = "" ]] || [[ "$dbInpFile" = "" ]] || [[ "$dbInpType" = "" ]]; then
 		echo "Input parameters are missing."
 		exit 1;
 	fi
-	if [ "$dbInpType" != "csv" ] && [ "$dbInpType" != "mask" ]; then 
+	if [[ "$dbInpType" != "csv" ]] && [[ "$dbInpType" != "mask" ]]; then 
 		echo "Input type must be csv or mask."
 		exit 1;
 	fi
@@ -212,7 +212,7 @@ if [ "$dbCmd" = "loadfile" ]; then
 fi
 
 # load zip file
-if [ "$dbCmd" = "loadzip" ]; then
+if [[ "$dbCmd" = "loadzip" ]]; then
 	dbDockerName=$1
 	shift
 	dbName=$1
@@ -221,11 +221,11 @@ if [ "$dbCmd" = "loadzip" ]; then
 	shift
 	dbInpType=$1
 	shift
-	if [ "$dbDockerName" = "" ] || [ "$dbName" = "" ] || [ "$dbZipFile" = "" ] || [ "$dbInpType" = "" ]; then
+	if [[ "$dbDockerName" = "" ]] || [[ "$dbName" = "" ]] || [[ "$dbZipFile" = "" ]] || [[ "$dbInpType" = "" ]]; then
 		echo "Input parameters are missing."
 		exit 1;
 	fi
-	if [ "$dbInpType" != "csv" ] && [ "$dbInpType" != "mask" ]; then 
+	if [[ "$dbInpType" != "csv" ]] && [[ "$dbInpType" != "mask" ]]; then 
 		echo "Input type must be csv or mask."
 		exit 1;
 	fi
@@ -238,7 +238,7 @@ if [ "$dbCmd" = "loadzip" ]; then
 fi
 
 # load zip file
-if [ "$dbCmd" = "loadquip" ]; then
+if [[ "$dbCmd" = "loadquip" ]]; then
 	dbDockerName=$1
 	shift
 	dbName=$1
@@ -247,11 +247,11 @@ if [ "$dbCmd" = "loadquip" ]; then
 	shift
 	dbInpType=$1
 	shift
-	if [ "$dbDockerName" = "" ] || [ "$dbName" = "" ] || [ "$dbZipFile" = "" ] || [ "$dbInpType" = "" ]; then
+	if [[ "$dbDockerName" = "" ]] || [[ "$dbName" = "" ]] || [[ "$dbZipFile" = "" ]] || [[ "$dbInpType" = "" ]]; then
 		echo "Input parameters are missing."
 		exit 1;
 	fi
-	if [ "$dbInpType" != "csv" ] && [ "$dbInpType" != "mask" ]; then 
+	if [[ "$dbInpType" != "csv" ]] && [[ "$dbInpType" != "mask" ]]; then 
 		echo "Input type must be csv or mask."
 		exit 1;
 	fi
