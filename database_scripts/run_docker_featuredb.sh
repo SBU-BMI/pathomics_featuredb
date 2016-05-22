@@ -29,7 +29,9 @@ print_usage()
 	echo "		arguments: <docker name> <database name>"
 	echo " "
 	echo "	imgmeta - load image metadata"
-	echo "		arguments: <docker name> <database name> <image metadata file>"
+	echo "		arguments: <docker name> <database name> <file> <--image <cancer_type> <subject id> <case id> | --metadata>"
+	echo "			metadata - file is a QUIP image metadata CSV file containing metadata about multiple images."
+	echo "          image - file is a whole tissue image. Need to provide cancer type, subject id, and case id. "
 	echo " "
 	echo "	loadfile - load a single file containing analysis results"
 	echo "		arguments: <docker name> <database name> <input file> <csv|mask> <additional arguments>"
@@ -148,17 +150,39 @@ fi
 if [ "$dbCmd" = "imgmeta" ]; then
 	dbDockerName=$1
 	dbName=$2
-	imgMetaFile=$3
-	if [ "$dbDockerName" = "" ] || [ "$dbName" = "" ] || [ "$imgMetaFile" = "" ]; then
+	inpFile=$3
+	fileType=$4
+	if [ "$dbDockerName" = "" ] || [ "$dbName" = "" ] || [ "$inpFile" = "" ] || [ "$fileType" = ""]; then
 		echo "Docker instance and database names and image metadata file are required."
 		exit 1;
 	fi
-	tempDir="staging"$$"-"$RANDOM
-	docker exec $dbDockerName mkdir /tmp/$tempDir
-	baseName=$(basename $imgMetaFile);
-	docker cp $imgMetaFile $dbDockerName:/tmp/$tempDir/$baseName
-	docker exec $dbDockerName run_docker_load_imgmeta.sh $dbName /tmp/$tempDir $baseName
-	exit 0;
+	if [ "$fileType" != "--metadata" ] && [ "$fileType" != "--image" ]; then
+		echo "ERROR: Wrong input file type. Should be metadata or image."
+		exit 1;
+	fi
+	
+	if [ "$fileType" = "--metadata" ]; then
+		tempDir="staging"$$"-"$RANDOM
+		docker exec $dbDockerName mkdir /tmp/$tempDir
+		baseName=$(basename $inpFile);
+		docker cp $inpFile $dbDockerName:/tmp/$tempDir/$baseName
+		docker exec $dbDockerName run_docker_load_metafile.sh $dbName /tmp/$tempDir $baseName
+		exit 0;
+	else
+		cancerType=$5
+		subjectId=$6
+		caseId=$7
+		if [ "$cancerType" = "" ] || [ "$subjectId" = "" ] || [ "$caseId" = "" ]; then
+			echo "ERROR: cancer type, subject id, case id are missing."
+			exit 1;
+		fi
+		tempDir="staging"$$"-"$RANDOM
+		docker exec $dbDockerName mkdir /tmp/$tempDir
+		baseName=$(basename $inpFile);
+		docker cp $inpFile $dbDockerName:/tmp/$tempDir/$baseName
+		docker exec $dbDockerName run_docker_load_imgmeta.sh $dbName /tmp/$tempDir $baseName $cancerType $subjectId $caseId
+		exit 0;
+	fi
 fi
 
 # load file
