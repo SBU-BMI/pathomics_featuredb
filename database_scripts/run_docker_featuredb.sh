@@ -61,6 +61,14 @@ print_usage()
 	echo "				--namespace <namespace>        Namespace for feature attribute names."
 	echo "				--simplify                     Simplify polygons in CSV files using the JTS library."
 	echo "				--sizefilter <minSize,maxSize> Filter polygons in CSV files based on polygon area."
+	echo "	loadquip  - load quip analysis file collection in a zip file" 
+	echo "		arguments: <docker name> <database name> <input zip file> <csv|mask> <additional arguments>"
+	echo "			required additional arguments: "
+	echo "				--studyid <studyid> Study ID."
+	echo "			optional additional arguments: "
+	echo "				--namespace <namespace>        Namespace for feature attribute names."
+	echo "				--simplify                     Simplify polygons in CSV files using the JTS library."
+	echo "				--sizefilter <minSize,maxSize> Filter polygons in CSV files based on polygon area."
 }
 
 if [ "$#" -lt 1 ] || [ "$1" = "-h" ]; then
@@ -202,6 +210,32 @@ if [ "$dbCmd" = "loadzip" ]; then
 	baseName=$(basename $dbZipFile);
 	docker cp $dbZipFile $dbDockerName:/tmp/$tempDir/$baseName
 	docker exec $dbDockerName run_docker_load_zip.sh $dbName /tmp/$tempDir $baseName $dbInpType "$@" 
+	exit 0;
+fi
+
+# load zip file
+if [ "$dbCmd" = "loadquip" ]; then
+	dbDockerName=$1
+	shift
+	dbName=$1
+	shift
+	dbZipFile=$1
+	shift
+	dbInpType=$1
+	shift
+	if [ "$dbDockerName" = "" ] || [ "$dbName" = "" ] || [ "$dbZipFile" = "" ] || [ "$dbInpType" = "" ]; then
+		echo "Input parameters are missing."
+		exit 1;
+	fi
+	if [ "$dbInpType" != "csv" ] && [ "$dbInpType" != "mask" ]; then 
+		echo "Input type must be csv or mask."
+		exit 1;
+	fi
+	tempDir="staging"$$"-"$RANDOM
+	docker exec $dbDockerName mkdir /tmp/$tempDir
+	baseName=$(basename $dbZipFile);
+	docker cp $dbZipFile $dbDockerName:/tmp/$tempDir/$baseName
+	docker exec $dbDockerName run_docker_quip_zip.sh $dbName /tmp/$tempDir $baseName $dbInpType "$@" 
 	exit 0;
 fi
 
