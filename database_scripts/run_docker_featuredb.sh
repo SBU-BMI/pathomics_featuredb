@@ -3,9 +3,9 @@
 dbCmd=""
 dbDockerName=""
 dbName=""
-dbLocalFolder="/data/db"
 dbLocalPort=27017
 dbQryPort=3000
+dbDockerImage="sbubmi/pathomics_featuredb"
 imgMetaFile=""
 dbInpFile=""
 dbZipFile=""
@@ -16,11 +16,11 @@ print_usage()
 	echo "Usage: run_docker_featuredb.sh -h|<command> [options]"
 	echo "Commands: "
 	echo "	start - start Docker instance"
-	echo "		arguments: <docker name> [--dbpath <host database folder> --qryport <host port for query server> --dbport <host port for mongodb>]"
+	echo "		arguments: <docker name> [--dbpath <host database folder> --qryport <host port for query server> --dbport <host port for mongodb> --dbimage <docker image>]"
 	echo "		default values: "
-	echo "			host database folder: " $dbLocalFolder
 	echo "			host port for query server: " $dbQryPort
 	echo "			host port for mongodb: " $dbLocalPort
+	echo "          docker image: " $dbDockerImage
 	echo " "
 	echo "	remove - kill and remove Docker instance" 
 	echo "		arguments: <docker name>"
@@ -106,6 +106,10 @@ if [[ "$dbCmd" = "start" ]]; then
 				dbLocalPort="$2"
 				shift # past argument
 			;;
+			--dbimage)
+				dbDockerImage="$2"
+				shift # past argument
+			;;
 			*)
 				echo "Unknown option";
 				exit 1;	# unknown option
@@ -113,7 +117,11 @@ if [[ "$dbCmd" = "start" ]]; then
 		esac
 		shift # past argument or value
 	done
-	docker run --name $dbDockerName -it -v $dbLocalFolder:/data/db -p $dbLocalPort:27017 -p $dbQryPort:3000 -d sbubmi/featuredb run_docker_mongodb_query.sh 
+	if [[ "$dbLocalFolder" = "" ]]; then
+		docker run --name $dbDockerName -it -p $dbLocalPort:27017 -p $dbQryPort:3000 -d $dbDockerImage run_docker_mongodb_query.sh 
+	else
+		docker run --name $dbDockerName -it -v $dbLocalFolder:/data/db -p $dbLocalPort:27017 -p $dbQryPort:3000 -d $dbDockerImage run_docker_mongodb_query.sh 
+	fi
 	if [[ $? == 0 ]]; then 
 		echo "Use the following docker instance name in future interactions with featuredb docker: " $dbDockerName
 		exit 0;
