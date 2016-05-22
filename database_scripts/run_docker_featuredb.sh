@@ -16,12 +16,12 @@ print_usage()
 	echo "Usage: run_docker_featuredb.sh -h|<command> [options]"
 	echo "Commands: "
 	echo "	start - start Docker instance"
-	echo "		arguments: <docker name> [--dbpath <host database folder> --qryport <host port for query server> --dbport <host port for mongodb> --image <docker image> --user <user>]"
+	echo "		arguments: <docker name> [--dbpath <host database folder> --qryport <host port for query server> --dbport <host port for mongodb> --image <docker image> --root <yes>]"
 	echo "		default values: "
 	echo "			host port for query server: " $dbQryPort
 	echo "			host port for mongodb: " $dbLocalPort
-	echo "          docker image: " $dbDockerImageA
-	echo "          user: run as user in docker. Default: root"
+	echo "			docker image: " $dbDockerImage
+	echo "			user: run as root in docker. Default is local user id: " $UID "(" $USER")"
 	echo " "
 	echo "	remove - kill and remove Docker instance" 
 	echo "		arguments: <docker name>"
@@ -32,7 +32,7 @@ print_usage()
 	echo "	imgmeta - load image metadata"
 	echo "		arguments: <docker name> <database name> <file> <--image <cancer_type> <subject id> <case id> | --metadata>"
 	echo "			metadata - file is a QUIP image metadata CSV file containing metadata about multiple images."
-	echo "          image - file is a whole tissue image. Need to provide cancer type, subject id, and case id. "
+	echo "			image - file is a whole tissue image. Need to provide cancer type, subject id, and case id. "
 	echo " "
 	echo "	loadfile - load a single file containing analysis results"
 	echo "		arguments: <docker name> <database name> <input file> <csv|mask> <additional arguments>"
@@ -85,16 +85,18 @@ shift
 # start command 
 if [[ "$dbCmd" = "start" ]]; then
 	dbDockerImage=""
-	dbDockerUser="root"
+	dbDockerUser=$UID
 	dbDockerName=$1
 	shift
 	if [[ "$dbDockerName" = "" ]]; then
 		echo "A docker instance name is required."
 		exit 1;
 	fi
-	while [[ $# > 1 ]]
+	while [[ $# > 0 ]]
 	do
 		key="$1"
+
+		echo $key
 
 		case $key in
 			--dbpath)
@@ -113,8 +115,8 @@ if [[ "$dbCmd" = "start" ]]; then
 				dbDockerImage="$2"
 				shift # past argument
 			;;
-			--user)
-				dbDockerUser="$2"
+			--root)
+				dbDockerUser="root"
 				shift # past argument
 			;;
 			*)
@@ -122,8 +124,9 @@ if [[ "$dbCmd" = "start" ]]; then
 				exit 1;	# unknown option
 			;;
 		esac
-		shift # past argument or value
+		shift
 	done
+	echo $dbDockerUser
 	if [[ "$dbLocalFolder" = "" ]]; then
 		docker run --name $dbDockerName --user $dbDockerUser:$dbDockerUser -it -p $dbLocalPort:27017 -p $dbQryPort:3000 -d $dbDockerImage run_docker_mongodb_query.sh 
 	else
