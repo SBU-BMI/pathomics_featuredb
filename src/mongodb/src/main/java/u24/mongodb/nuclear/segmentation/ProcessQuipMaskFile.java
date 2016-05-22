@@ -33,6 +33,7 @@ public class ProcessQuipMaskFile implements ProcessFile {
 	private ImageExecutionMapping imgExecMap;
 	private double min_x, min_y, max_x, max_y;
 	private DBObject quipMeta;
+	private boolean doNormalize;
 	
 	private BufferedWriter bufferedWriter;
 	
@@ -58,6 +59,8 @@ public class ProcessQuipMaskFile implements ProcessFile {
 		this.bufferedWriter = null;
 		if (inputParams.outFileWriter!=null) 
 			this.bufferedWriter = new BufferedWriter(inputParams.outFileWriter);
+		
+		this.doNormalize = true;
 	}
 	
 	public ProcessQuipMaskFile(FileParameters fileParams,
@@ -75,6 +78,8 @@ public class ProcessQuipMaskFile implements ProcessFile {
 		this.bufferedWriter = null;
 		if (inputParams.outFileWriter!=null) 
 			this.bufferedWriter = new BufferedWriter(inputParams.outFileWriter);
+		
+		this.doNormalize = inputParams.doNormalize;
 	}
 
 	void shiftPoints(Point[] points) {
@@ -115,7 +120,6 @@ public class ProcessQuipMaskFile implements ProcessFile {
 			execMeta = new AnalysisExecutionMetadata(execId, inputParams.studyID, inputParams.batchID,  
 					inputParams.tagID, execTitle, inputParams.execType, inputParams.execComp);
 			
-			double objective = 40;
 			double mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
 			double mpp_y = mpp_x;
 			double image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
@@ -147,7 +151,6 @@ public class ProcessQuipMaskFile implements ProcessFile {
 			imgMeta.setMpp_y(mpp_y);
 			imgMeta.setWidth(image_width);
 			imgMeta.setHeight(image_height);
-			imgMeta.setObjective(objective);
 			imgMeta.setCancertype(cancer_type);
 
 			// Check and register image to analysis mapping information
@@ -155,6 +158,11 @@ public class ProcessQuipMaskFile implements ProcessFile {
 			if (bufferedWriter==null) { // output to db 
 				if (!imgExecMap.checkExists(segDB)) 
 					segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
+			}
+			
+			if (doNormalize==false) {
+				image_width  = 1.0;
+				image_height = 1.0;
 			}
 
 			List<PolygonData> polygons = maskToPoly.getPolygons();

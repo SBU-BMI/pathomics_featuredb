@@ -120,7 +120,6 @@ public class ProcessTSVFeaturePolygonFile implements ProcessFile {
      */
     public void processFile() {
         try {
-        	double objective = 40.0;
             double mpp_x = 0.25;
             double mpp_y = 0.25;
             double image_width  = 1.0; 
@@ -138,7 +137,6 @@ public class ProcessTSVFeaturePolygonFile implements ProcessFile {
 						return;
 					}
 
-					objective = Double.parseDouble(qryResult.get("objective").toString());
 					mpp_x = Double.parseDouble(qryResult.get("mpp_x").toString());
 					mpp_y = Double.parseDouble(qryResult.get("mpp_y").toString());
 					image_width = Double.parseDouble(qryResult.get("width").toString());
@@ -169,7 +167,6 @@ public class ProcessTSVFeaturePolygonFile implements ProcessFile {
             imgMeta.setMpp_y(mpp_y);
             imgMeta.setWidth(image_width);
             imgMeta.setHeight(image_height);
-            imgMeta.setObjective(objective);
             imgMeta.setCancertype(cancer_type);
 
             List<String> lines = readSmallTextFile(fileName);

@@ -25,8 +25,8 @@ public class ImageExecutionMapping {
         metadataDoc.put("title", execMeta.getTitle());
 
         BasicDBObject imgmeta_doc = new BasicDBObject();
-        imgmeta_doc.put("subjectid", imgMeta.getSubjectid());
-        imgmeta_doc.put("caseid", imgMeta.getCaseid());
+        imgmeta_doc.put("subject_id", imgMeta.getSubjectid());
+        imgmeta_doc.put("case_id", imgMeta.getCaseid());
 
         BasicDBObject provenance_doc = new BasicDBObject();
         provenance_doc.put("analysis_execution_id",
@@ -50,8 +50,8 @@ public class ImageExecutionMapping {
         metadataDoc.put("title", execMeta.getTitle());
 
         BasicDBObject imgmeta_doc = new BasicDBObject();
-        imgmeta_doc.put("subjectid", imgMeta.getSubjectid());
-        imgmeta_doc.put("caseid", imgMeta.getCaseid());
+        imgmeta_doc.put("subject_id", imgMeta.getSubjectid());
+        imgmeta_doc.put("case_id", imgMeta.getCaseid());
 
         BasicDBObject provenance_doc = new BasicDBObject();
         provenance_doc.put("analysis_execution_id",
@@ -74,7 +74,7 @@ public class ImageExecutionMapping {
      */
     public boolean checkExists(ResultsDatabase db, String executionIdentifier, String studyId, String imageCaseID) {
         BasicDBObject imgQuery = new BasicDBObject();
-        imgQuery.put("image.caseid", imageCaseID);
+        imgQuery.put("image.case_id", imageCaseID);
         imgQuery.put("provenance.analysis_execution_id",
                 executionIdentifier);
         imgQuery.put("provenance.study_id", studyId);
@@ -85,8 +85,8 @@ public class ImageExecutionMapping {
     
     public boolean checkExists(ResultsDatabase db) {
     	BasicDBObject imgQuery = new BasicDBObject();
-        imgQuery.put("image.caseid", caseId);
-        imgQuery.put("image.subjectid", subjectId);
+        imgQuery.put("image.case_id", caseId);
+        imgQuery.put("image.subject_id", subjectId);
         imgQuery.put("provenance.analysis_execution_id",execId);
         imgQuery.put("provenance.study_id", stdyId);
         DBCursor cursor = db.submitAnalysisExecutionMappingQuery(imgQuery);
@@ -111,8 +111,8 @@ public class ImageExecutionMapping {
         metadataDoc.put("title", execMeta.getTitle());
 
         BasicDBObject imgmeta_doc = new BasicDBObject();
-        imgmeta_doc.put("subjectid", imgMeta.getSubjectid());
-        imgmeta_doc.put("caseid", imgMeta.getCaseid());
+        imgmeta_doc.put("subject_id", imgMeta.getSubjectid());
+        imgmeta_doc.put("case_id", imgMeta.getCaseid());
 
         BasicDBObject provenance_doc = new BasicDBObject();
         provenance_doc.put("analysis_execution_id",

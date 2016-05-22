@@ -16,7 +16,6 @@ public class SimpleImageMetadata {
     private double mpp_y;
     private double width;
     private double height;
-    private double objective;
     private String cancertype;
 
     private BasicDBObject image_doc;
@@ -34,7 +33,6 @@ public class SimpleImageMetadata {
         this.mpp_y = -1.0;
         this.width = 0.0;
         this.height = 0.0;
-        this.objective = 0.0;
         this.cancertype = "undefined";
     }
 
@@ -83,11 +81,6 @@ public class SimpleImageMetadata {
     public void setHeight(double height) {
         this.height = height;
         image_doc.put("height", this.height);
-    }
-
-    public void setObjective(double objective) {
-        this.objective = objective;
-        image_doc.put("objective", this.objective);
     }
 
     public void setCancertype(String cancertype) {

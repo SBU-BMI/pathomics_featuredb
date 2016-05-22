@@ -18,8 +18,13 @@ public class CommandLineArguments {
     private static String dbUser    = null;
     private static String dbPasswd  = null;
 
-    private static String inpType   = null;
-    private static boolean isQuip   = false;
+    private static String  inpType    = null;
+    private static boolean isQuip     = false;
+    private static boolean isCSV      = false;
+    private static boolean isAperio   = false;
+    private static boolean isMask     = false;
+    private static boolean isMaskTile = false;
+    private static boolean isTSV      = false;
     
     private static String inpList   = null;
     private static String imgFile   = null;
@@ -154,7 +159,7 @@ public class CommandLineArguments {
 		Option normbyself = Option
 				.builder()
 				.longOpt("self")
-				.desc("Normalize polygon coordinates to [0,1] using the width and height of input mask.")
+				.desc("Normalize polygon coordinates to [0,1] using image metadata in input file(s).")
 				.build();
 
 		allOpts.addOption(shift);
@@ -349,8 +354,13 @@ public class CommandLineArguments {
 		inpType = cmdLine.getOptionValue("inptype");
 		
 		// legacy mapping of mask file variations
-		if (inpType.equals("maskfile") || inpType.equals("mask") || inpType.equals("masktile")) 
+		if (inpType.equals("maskfile") || inpType.equals("mask") || inpType.equals("masktile")) {
 			inpType="mask";
+			isMaskTile = true;
+			isMask = true;
+		}
+		if (inpType.equals("csv")) isCSV = true;
+		if (inpType.equals("tsv")) isTSV = true;
 		
 		if (inpType.equals("aperio")) {
 			if (cmdLine.hasOption("inpfile")) {
@@ -358,6 +368,7 @@ public class CommandLineArguments {
 			} else {
 				System.err.println("ERROR: aperio option" + "requires --inpfile parameter.");
 			}
+			isAperio = true;
 		} else if (inpType.equals("csv") 
 				|| inpType.equals("tsv") 
 				|| inpType.equals("mask")) {
@@ -476,9 +487,6 @@ public class CommandLineArguments {
 			doNormalize     = true;
 			doSelfNormalize = true;
 		}
-		if (cmdLine.hasOption("quip")) {
-			doNormalize = true;
-		}
 		return true;
 	}
 
@@ -572,23 +580,23 @@ public class CommandLineArguments {
 
 	// Getters for input type
 	public static boolean isMaskFile() {
-		return inpType.equals("mask");
+		return isMask;
 	}
 
 	public static boolean isMaskTile() {
-		return inpType.equals("masktile");
+		return isMaskTile;
 	}
 
 	public static boolean isTSV() {
-		return inpType.equals("tsv");
+		return isTSV;
 	}
 
 	public static boolean isCSV() {
-		return inpType.equals("csv");
+		return isCSV;
 	}
 
 	public static boolean isAperio() {
-		return inpType.equals("aperio");
+		return isAperio;
 	}
 	
 	public static boolean isQuip() {

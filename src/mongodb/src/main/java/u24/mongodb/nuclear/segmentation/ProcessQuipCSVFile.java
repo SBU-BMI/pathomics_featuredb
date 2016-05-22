@@ -39,6 +39,7 @@ public class ProcessQuipCSVFile implements ProcessFile {
 	private int numPointsLimit;
 	private double simplifyTolerance;
 	private GeometryFactory geomFactory;
+	private boolean doNormalize;
 	
 	private DBObject quipMeta;
 	
@@ -53,7 +54,8 @@ public class ProcessQuipCSVFile implements ProcessFile {
 		this.execMeta = null;
 		this.numPointsLimit = SIMPLIFY_POINTS_LIMIT;
 		this.simplifyTolerance = SIMPLIFY_TOLERANCE;
-		this.geomFactory = null; 
+		this.geomFactory = null;
+		this.doNormalize = true;
 	}
 
 	public ProcessQuipCSVFile(String fileName, String subjectId, String caseId,
@@ -67,6 +69,7 @@ public class ProcessQuipCSVFile implements ProcessFile {
 		this.numPointsLimit = SIMPLIFY_POINTS_LIMIT;
 		this.simplifyTolerance = SIMPLIFY_TOLERANCE;
 		this.geomFactory = new GeometryFactory();
+		this.doNormalize = true;
 	}
 	
 	public ProcessQuipCSVFile(FileParameters fileParams,
@@ -79,6 +82,7 @@ public class ProcessQuipCSVFile implements ProcessFile {
 		this.numPointsLimit = SIMPLIFY_POINTS_LIMIT;
 		this.simplifyTolerance = SIMPLIFY_TOLERANCE;
 		this.geomFactory = new GeometryFactory();
+		this.doNormalize = inputParams.doNormalize;
 	}
 
 	public boolean isNumeric(String str) {
@@ -128,13 +132,12 @@ public class ProcessQuipCSVFile implements ProcessFile {
 			return out_points;
 		}
 	}
-
+	
 	/**
 	 * Performs the processing operation.
 	 */
 	public void processFile() {
 		try {
-			
 			// Read the json file for analysis metadata
 			Path pathMeta = Paths.get(fileName);
 			BufferedReader brMeta = Files.newBufferedReader(pathMeta, ENCODING);
@@ -158,7 +161,6 @@ public class ProcessQuipCSVFile implements ProcessFile {
 			execMeta = new AnalysisExecutionMetadata(execId, inputParams.studyID, inputParams.batchID,  
 					inputParams.tagID, execTitle, inputParams.execType, inputParams.execComp);
 
-			double objective = 40;
 			double mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
 			double mpp_y = mpp_x;
 			double image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
@@ -178,13 +180,17 @@ public class ProcessQuipCSVFile implements ProcessFile {
 			imgMeta.setMpp_y(mpp_y);
 			imgMeta.setWidth(image_width);
 			imgMeta.setHeight(image_height);
-			imgMeta.setObjective(objective);
 			imgMeta.setCancertype(cancer_type);
 
 			// Check and register image to analysis mapping information
 			imgExecMap = new ImageExecutionMapping(execMeta, imgMeta, inputParams.colorVal,quipMeta);
 			if (!imgExecMap.checkExists(segDB)) {
 				segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
+			}
+			
+			if (doNormalize==false) {
+				image_width  = 1.0;
+				image_height = 1.0;
 			}
 
 			// Read input CSV file
