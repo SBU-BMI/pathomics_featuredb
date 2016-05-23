@@ -5,7 +5,7 @@ if [ -z $FEATUREDB_DIR ]; then
 	exit 1;
 fi
 
-mongod --logpath=/data/db/db.log --storageEngine=wiredTiger --fork --directoryperdb
+mongod --logpath=/data/db/db.log --storageEngine=wiredTiger --fork --directoryperdb "$@"
 node $FEATUREDB_DIR/query_server/server.js &
 /bin/bash
 
