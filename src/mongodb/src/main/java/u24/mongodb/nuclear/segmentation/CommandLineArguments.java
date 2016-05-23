@@ -409,7 +409,7 @@ public class CommandLineArguments {
 			dbPasswd = cmdLine.getOptionValue("dbpasswd");
 		
 		if (dbUser!=null)
-			dbServer = "mongodb://" + dbUser + ":" + dbPasswd + "@" + dbHost + ":" + dbPort + "/?authSource=" + dbName;
+			dbServer = "mongodb://" + dbUser + ":" + dbPasswd + "@" + dbHost + ":" + dbPort + "/" + dbName;
 		else
 			dbServer = "mongodb://" + dbHost + ":" + dbPort + "/" + dbName;
 		
