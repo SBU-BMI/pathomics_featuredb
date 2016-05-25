@@ -80,7 +80,6 @@ shift
 
 # start command 
 if [[ "$dbCmd" = "start" ]]; then
-	dbDockerImage=""
 	dbDockerUser=$UID
 	dbDockerName=$1
 	shift
@@ -122,11 +121,13 @@ if [[ "$dbCmd" = "start" ]]; then
 		esac
 		shift
 	done
-	echo $dbDockerUser
+	echo  $dbDockerUser
+	echo "$dbDockerImage"
+	echo "$dbLocalFolder"
 	if [[ "$dbLocalFolder" = "" ]]; then
-		docker run --name $dbDockerName --user $dbDockerUser:$dbDockerUser -it -p $dbLocalPort:27017 -p $dbQryPort:3000 -d $dbDockerImage run_docker_mongodb_query.sh 
+		docker run --name $dbDockerName --user $dbDockerUser:$dbDockerUser -it -p $dbLocalPort:27017 -p $dbQryPort:3000 -d "$dbDockerImage" run_docker_mongodb_query.sh 
 	else
-		docker run --name $dbDockerName --user $dbDockerUser:$dbDockerUser -it -v $dbLocalFolder:/data/db -p $dbLocalPort:27017 -p $dbQryPort:3000 -d $dbDockerImage run_docker_mongodb_query.sh 
+		docker run --name $dbDockerName --user $dbDockerUser:$dbDockerUser -it -v $dbLocalFolder:/data/db -p $dbLocalPort:27017 -p $dbQryPort:3000 -d "$dbDockerImage" run_docker_mongodb_query.sh 
 	fi
 	if [[ $? == 0 ]]; then 
 		echo "Use the following docker instance name in future interactions with featuredb docker: " $dbDockerName
