@@ -1,6 +1,7 @@
 package u24.mongodb.nuclear.segmentation;
 
 import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
@@ -125,10 +126,8 @@ public class ProcessQuipMaskFile implements ProcessFile {
 			double image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
 			double image_height = Double.parseDouble(quipMeta.get("image_height").toString()); 
 			String cancer_type = "unknown";
-			shiftX  = Integer.parseInt(quipMeta.get("tile_minx").toString());
-			shiftX += Integer.parseInt(quipMeta.get("patch_minx").toString());
-			shiftY  = Integer.parseInt(quipMeta.get("tile_miny").toString());
-			shiftY += Integer.parseInt(quipMeta.get("patch_miny").toString());
+			shiftX = Integer.parseInt(quipMeta.get("patch_minx").toString());
+			shiftY = Integer.parseInt(quipMeta.get("patch_miny").toString());
 			
 			String maskFilePrefix  = quipMeta.get("out_file_prefix").toString();
 			String maskFilePathTmp = (new File(fileName)).getAbsolutePath();
@@ -158,6 +157,15 @@ public class ProcessQuipMaskFile implements ProcessFile {
 			if (bufferedWriter==null) { // output to db 
 				if (!imgExecMap.checkExists(segDB)) 
 					segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
+			}
+			
+			// Check and register additional analysis provenance data
+			BasicDBObject provQuery = new BasicDBObject();
+			provQuery.put("analysis_execution_id", execId);
+			DBObject qryResult = segDB.getProvenanceCollection().findOne(provQuery);
+			if (qryResult == null) {
+				quipMeta.put("analysis_execution_id", execId);
+				segDB.submitProvenanceDocument((BasicDBObject)quipMeta);
 			}
 			
 			if (doNormalize==false) {

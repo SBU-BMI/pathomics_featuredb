@@ -85,6 +85,10 @@ public class ResultsDatabase {
     public DBCollection getImagesCollection() {
         return collImages;
     }
+    
+    public DBCollection getProvenanceCollection() {
+    	return collProvenance;
+    }
 
     public DBCursor submitAnalysisExecutionMappingQuery(BasicDBObject query) {
         return collMetadata.find(query);

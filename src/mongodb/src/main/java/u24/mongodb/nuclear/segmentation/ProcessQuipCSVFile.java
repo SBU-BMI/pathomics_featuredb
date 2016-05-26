@@ -1,6 +1,7 @@
 package u24.mongodb.nuclear.segmentation;
 
 import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
@@ -188,6 +189,15 @@ public class ProcessQuipCSVFile implements ProcessFile {
 				segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
 			}
 			
+			// Check and register additional analysis provenance data
+			BasicDBObject provQuery = new BasicDBObject();
+			provQuery.put("analysis_execution_id", execId);
+			DBObject qryResult = segDB.getProvenanceCollection().findOne(provQuery);
+			if (qryResult == null) {
+				quipMeta.put("analysis_execution_id", execId);
+				segDB.submitProvenanceDocument((BasicDBObject)quipMeta);
+			}
+
 			if (doNormalize==false) {
 				image_width  = 1.0;
 				image_height = 1.0;
