@@ -27,6 +27,7 @@ public class ResultsDatabase {
     private DBCollection collObjects;
     private DBCollection collMetadata;
     private DBCollection collImages;
+    private DBCollection collProvenance;
 
     /**
      * Constructor.
@@ -73,6 +74,8 @@ public class ResultsDatabase {
         collMetadata = db.getCollection(metadataCollection);
         String imagesCollection = "images";
         collImages = db.getCollection(imagesCollection);
+        String provenanceCollection = "provenance";
+        collProvenance = db.getCollection(provenanceCollection);
     }
     
     public DB getDB() {
@@ -101,6 +104,14 @@ public class ResultsDatabase {
         collMetadata.insert(doc);
 
         return (ObjectId) doc.get("_id");
+    }
+    
+    public ObjectId submitProvenanceDocument(BasicDBObject doc) {
+    	 doc.append("submit_date", new Date());
+         doc.append("randval", rand.nextFloat());
+         collProvenance.insert(doc);
+
+         return (ObjectId) doc.get("_id");
     }
 
 }
