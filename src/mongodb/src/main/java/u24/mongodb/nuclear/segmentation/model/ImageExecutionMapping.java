@@ -1,4 +1,6 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.model;
+
+import u24.mongodb.nuclear.segmentation.database.ResultsDatabase;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -16,9 +18,9 @@ public class ImageExecutionMapping {
     private String caseId;
     private String subjectId;
     
-    ImageExecutionMapping() { }
+    public ImageExecutionMapping() { }
   
-    ImageExecutionMapping(AnalysisExecutionMetadata execMeta,
+    public ImageExecutionMapping(AnalysisExecutionMetadata execMeta,
             SimpleImageMetadata imgMeta, String color) {
     	metadataDoc = new BasicDBObject();
         metadataDoc.put("color", color);
@@ -43,7 +45,7 @@ public class ImageExecutionMapping {
         subjectId = imgMeta.getSubjectid();
     }
 
- 	ImageExecutionMapping(AnalysisExecutionMetadata execMeta,
+ 	public ImageExecutionMapping(AnalysisExecutionMetadata execMeta,
             SimpleImageMetadata imgMeta, String color, DBObject quipMeta) {
     	metadataDoc = new BasicDBObject();
         metadataDoc.put("color", color);

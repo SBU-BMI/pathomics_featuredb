@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.model;
 
 import com.mongodb.BasicDBList;
 import org.opencv.core.Point;

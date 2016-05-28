@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.parser;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
@@ -14,6 +14,22 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+
+
+
+
+
+import u24.mongodb.nuclear.segmentation.cli.FileParameters;
+import u24.mongodb.nuclear.segmentation.cli.InputParameters;
+import u24.mongodb.nuclear.segmentation.database.ResultsDatabase;
+import u24.mongodb.nuclear.segmentation.model.AnalysisExecutionMetadata;
+import u24.mongodb.nuclear.segmentation.model.Image2DMarkupGeoJSON;
+import u24.mongodb.nuclear.segmentation.model.ImageExecutionMapping;
+import u24.mongodb.nuclear.segmentation.model.Poinsettia;
+import u24.mongodb.nuclear.segmentation.model.SimpleImageMetadata;
+
+
 
 
 // Polygon simplification 

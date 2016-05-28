@@ -1,10 +1,18 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.parser;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+
 import org.opencv.core.Point;
+
 import u24.masktopoly.PolygonData;
+import u24.mongodb.nuclear.segmentation.database.ResultsDatabase;
+import u24.mongodb.nuclear.segmentation.model.AnalysisExecutionMetadata;
+import u24.mongodb.nuclear.segmentation.model.Image2DMarkupGeoJSON;
+import u24.mongodb.nuclear.segmentation.model.ImageExecutionMapping;
+import u24.mongodb.nuclear.segmentation.model.Poinsettia;
+import u24.mongodb.nuclear.segmentation.model.SimpleImageMetadata;
 
 import java.io.File;
 import java.io.BufferedWriter;
@@ -13,6 +21,7 @@ import java.util.HashMap;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;

@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.cli;
 
 import org.apache.commons.cli.*;
 

@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.database;
 
 import java.util.Date;
 import java.util.Random;

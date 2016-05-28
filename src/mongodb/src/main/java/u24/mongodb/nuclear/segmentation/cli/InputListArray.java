@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.cli;
 
 import java.io.BufferedReader;
 import java.nio.file.Files;
@@ -13,11 +13,11 @@ public class InputListArray {
 	
 	private final static Charset ENCODING = StandardCharsets.UTF_8;
 	
-	InputListArray() {
+	public InputListArray() {
 		fileList = new ArrayList<FileParameters>();
 	}
 	
-	boolean setListArray(InputParameters inpParams) {
+	public boolean setListArray(InputParameters inpParams) {
 		try {
 			if (inpParams.isQuip) {
 				if (inpParams.inputList!=null) {
@@ -78,7 +78,7 @@ public class InputListArray {
 		return true;
 	}
 	
-	ArrayList<FileParameters> getListArray() {
+	public ArrayList<FileParameters> getListArray() {
 		return fileList;
 	}
 }

@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.database;
 
 /**
  * Created by tdiprima on 1/20/16.

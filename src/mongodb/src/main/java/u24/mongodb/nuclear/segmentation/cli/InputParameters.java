@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.cli;
 
 import java.io.FileWriter;
 
@@ -34,6 +34,6 @@ public class InputParameters {
 	    
 	    public FileWriter outFileWriter = null;
 	    
-	    InputParameters() { }
+	    public InputParameters() { }
 	    
 }

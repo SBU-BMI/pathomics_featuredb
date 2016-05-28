@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.model;
 
 import java.util.ArrayList;
 import java.util.UUID;

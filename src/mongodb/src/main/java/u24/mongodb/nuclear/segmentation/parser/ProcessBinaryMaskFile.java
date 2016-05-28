@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.parser;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
@@ -8,6 +8,14 @@ import org.opencv.core.Point;
 
 import u24.masktopoly.MaskToPoly;
 import u24.masktopoly.PolygonData;
+import u24.mongodb.nuclear.segmentation.cli.FileParameters;
+import u24.mongodb.nuclear.segmentation.cli.InputParameters;
+import u24.mongodb.nuclear.segmentation.database.ResultsDatabase;
+import u24.mongodb.nuclear.segmentation.model.AnalysisExecutionMetadata;
+import u24.mongodb.nuclear.segmentation.model.Image2DMarkupGeoJSON;
+import u24.mongodb.nuclear.segmentation.model.ImageExecutionMapping;
+import u24.mongodb.nuclear.segmentation.model.Poinsettia;
+import u24.mongodb.nuclear.segmentation.model.SimpleImageMetadata;
 
 import java.io.BufferedWriter;
 import java.util.HashMap;

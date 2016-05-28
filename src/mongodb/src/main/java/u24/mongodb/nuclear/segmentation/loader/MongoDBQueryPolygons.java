@@ -1,4 +1,4 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.loader;
 
 import com.mongodb.*;
 import com.mongodb.util.JSON;

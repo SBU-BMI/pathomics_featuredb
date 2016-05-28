@@ -1,8 +1,23 @@
-package u24.mongodb.nuclear.segmentation;
+package u24.mongodb.nuclear.segmentation.loader;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
+
+import u24.mongodb.nuclear.segmentation.cli.CommandLineArguments;
+import u24.mongodb.nuclear.segmentation.cli.FileParameters;
+import u24.mongodb.nuclear.segmentation.cli.InputListArray;
+import u24.mongodb.nuclear.segmentation.cli.InputParameters;
+import u24.mongodb.nuclear.segmentation.cli.IterateInputData;
+import u24.mongodb.nuclear.segmentation.database.ResultsDatabase;
+import u24.mongodb.nuclear.segmentation.model.AnalysisExecutionMetadata;
+import u24.mongodb.nuclear.segmentation.parser.ProcessAperioXMLFile;
+import u24.mongodb.nuclear.segmentation.parser.ProcessBinaryMaskFile;
+import u24.mongodb.nuclear.segmentation.parser.ProcessCSVFeaturePolygonFile;
+import u24.mongodb.nuclear.segmentation.parser.ProcessFile;
+import u24.mongodb.nuclear.segmentation.parser.ProcessQuipCSVFile;
+import u24.mongodb.nuclear.segmentation.parser.ProcessQuipMaskFile;
+import u24.mongodb.nuclear.segmentation.parser.ProcessTSVFeaturePolygonFile;
 
 class ProcessFileThread implements Runnable {
     private Thread myThread;
