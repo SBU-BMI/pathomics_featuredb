@@ -35,6 +35,10 @@ public class Image2DMarkupGeoJSON {
         objDoc.put("object_type", "nucleus");
 
     }
+    
+    public void setObjectType(String objType) {
+    	objDoc.put("object_type", objType);
+    }
 
     /**
      * Create the document subsection that corresponds to the segmentation result.
@@ -44,7 +48,7 @@ public class Image2DMarkupGeoJSON {
      * Footprint = Area. Required for caMicroscope.
      */
     public int setMarkup(double min_x,
-                         double min_y, double max_x, double max_y, String objType,
+                         double min_y, double max_x, double max_y, String geomType,
                          boolean coordinatesNormalized, BasicDBList objPointsList) {
 
         try {
@@ -63,7 +67,7 @@ public class Image2DMarkupGeoJSON {
             // Add geometry object
             BasicDBObject geomDoc = new BasicDBObject();
             // objType = "Polygon", etc.
-            geomDoc.put(TYPE, objType);
+            geomDoc.put(TYPE, geomType);
 
             // Add arrays of arrays of points
             BasicDBList objList = new BasicDBList();
@@ -75,7 +79,6 @@ public class Image2DMarkupGeoJSON {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
 
         return 0;
     }

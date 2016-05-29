@@ -25,6 +25,7 @@ public class CommandLineArguments {
     private static boolean isMask     = false;
     private static boolean isMaskTile = false;
     private static boolean isTSV      = false;
+    private static boolean isRad      = false;
     
     private static String inpList   = null;
     private static String imgFile   = null;
@@ -106,7 +107,7 @@ public class CommandLineArguments {
 				.longOpt("inptype")
 				.desc("Input type: mask (binary mask (0/1) format), csv (QUIP csv format), tsv (QUIP tab-separated value files), aperio (Aperio XML markup.)")
 				.hasArg()
-				.argName("mask|csv|tsv|aperio")
+				.argName("mask|csv|tsv|aperio|rad")
 				.required(true)
 				.build();
 		allOpts.addOption(inpType);
@@ -361,6 +362,7 @@ public class CommandLineArguments {
 		}
 		if (inpType.equals("csv")) isCSV = true;
 		if (inpType.equals("tsv")) isTSV = true;
+		if (inpType.equals("rad")) isRad = true;
 		
 		if (inpType.equals("aperio")) {
 			if (cmdLine.hasOption("inpfile")) {
@@ -370,7 +372,8 @@ public class CommandLineArguments {
 			}
 			isAperio = true;
 		} else if (inpType.equals("csv") 
-				|| inpType.equals("tsv") 
+				|| inpType.equals("tsv")
+				|| inpType.equals("rad")
 				|| inpType.equals("mask")) {
 			if (cmdLine.hasOption("inplist")) {
 				inpList = cmdLine.getOptionValue("inplist");
@@ -601,6 +604,10 @@ public class CommandLineArguments {
 	
 	public static boolean isQuip() {
 		return isQuip;
+	}
+	
+	public static boolean isRad() {
+		return isRad;
 	}
 
 	public static String getInpList() {

@@ -1,7 +1,11 @@
 apply plugin: 'java'
+apply plugin: 'application'
 
 def OpenCV = System.getenv("OPENCV_DIR")
 def OpenCVJava = System.getenv("OPENCV_JAVA_LIB")
+
+mainClassName   = 'u24.masktopoly.MaskToPoly'
+applicationName = 'masktopoly'
 
 version = '1.3'
 jar {

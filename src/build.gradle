@@ -10,5 +10,6 @@ allprojects {
 	clean {
 		"$rootDir/build/libs"
 	}
+	buildDir = "$rootDir/build"
 }
 

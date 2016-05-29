@@ -6,7 +6,7 @@ import com.mongodb.util.JSON;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 
-public class MongoDBQueryPolygons {
+public class FeatureDBQueryPolygons {
 
     public static void main(String args[]) {
 

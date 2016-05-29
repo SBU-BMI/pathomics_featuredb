@@ -14,6 +14,7 @@ import u24.mongodb.nuclear.segmentation.model.AnalysisExecutionMetadata;
 import u24.mongodb.nuclear.segmentation.parser.ProcessAperioXMLFile;
 import u24.mongodb.nuclear.segmentation.parser.ProcessBinaryMaskFile;
 import u24.mongodb.nuclear.segmentation.parser.ProcessCSVFeaturePolygonFile;
+import u24.mongodb.nuclear.segmentation.parser.ProcessCSVRadiologyFeatureFile;
 import u24.mongodb.nuclear.segmentation.parser.ProcessFile;
 import u24.mongodb.nuclear.segmentation.parser.ProcessQuipCSVFile;
 import u24.mongodb.nuclear.segmentation.parser.ProcessQuipMaskFile;
@@ -38,7 +39,7 @@ class ProcessFileThread implements Runnable {
     }
 }
 
-public class MongoSimpleLoaderThreaded {
+public class FeatureDBLoader {
 	
 	private static InputParameters inputParams;
 	
@@ -157,6 +158,8 @@ public class MongoSimpleLoaderThreaded {
 							process = new ProcessBinaryMaskFile(fileParams, inputParams, segDB[thread_id]);
 						} else if (process instanceof ProcessQuipMaskFile) {
 							process = new ProcessQuipMaskFile(fileParams, inputParams, segDB[thread_id]);
+						} else if (process instanceof ProcessCSVRadiologyFeatureFile) {
+							process = new ProcessCSVRadiologyFeatureFile(fileParams, inputParams, segDB[thread_id]);
 						} else if (process instanceof ProcessQuipCSVFile) {
 							process = new ProcessQuipCSVFile(fileParams, inputParams, segDB[thread_id]);
 						}
@@ -309,6 +312,8 @@ public class MongoSimpleLoaderThreaded {
     			} else {
     				handleFile(new ProcessBinaryMaskFile(),numThreads);
     			}
+    		} else if (CommandLineArguments.isRad()) {
+    			handleFile(new ProcessCSVRadiologyFeatureFile(),1);
     		} else if (CommandLineArguments.isAperio()) {
     			handleAperioXMLFile(numThreads);
     		} else {
