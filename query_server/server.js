@@ -48,7 +48,7 @@ function handleRequest(request, response) {
 		}
 
 		if (!parms.mongoUrl) {
-			if (!params.db) {
+			if (!parms.db) {
 				response.end("");
 				console.log("No db specified.");
 				return;
