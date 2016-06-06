@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 	}		
 
 	int64_t w,h;
-	openslide_get_level0_dimensions(osr,&w,&h);i
+	openslide_get_level0_dimensions(osr,&w,&h);
 
 	if (w<=0 || h<=0) {
 		fprintf(stderr,"Error: openslide cannot get width (%ld) and height (%ld) from the image file: %s\n.",w,h,inp_file)
