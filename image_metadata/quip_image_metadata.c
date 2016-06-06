@@ -35,12 +35,17 @@ int main(int argc, char **argv) {
 
 	openslide_t *osr = openslide_open(inp_file);
 	if (osr==NULL) {
-		fprintf(stdout,"Error: openslide cannot read file: %s\n",inp_file);
+		fprintf(stderr,"Error: openslide cannot read file: %s\n",inp_file);
 		exit(1);
 	}		
 
 	int64_t w,h;
-	openslide_get_level0_dimensions(osr,&w,&h);
+	openslide_get_level0_dimensions(osr,&w,&h);i
+
+	if (w<=0 || h<=0) {
+		fprintf(stderr,"Error: openslide cannot get width (%ld) and height (%ld) from the image file: %s\n.",w,h,inp_file)
+		exit(1);
+	}
 
 	fprintf(fpo,"hostname,filename,last_modified,cancer_type,case_id,subject_id,identifier,width,height,mpp_x,mpp_y,objective,vendor,status,level_count,imageid\n");
 	fprintf(fpo,"%s,",h_name);
@@ -97,7 +102,7 @@ int main(int argc, char **argv) {
 
 	if (check_ok==0) {
 		fprintf(fpo,"some_errors,");
-		fprintf(stdout,"SOME_ERRORS: %s\n",inp_file);
+		fprintf(stderr,"SOME_ERRORS: %s\n",inp_file);
 	} else {
 		fprintf(fpo,"status_ok,");
 		fprintf(stdout,"OK: %s\n",inp_file);
@@ -119,5 +124,5 @@ int main(int argc, char **argv) {
   	openslide_close(osr);
 	fclose(fpo);
 
-  	return 0;
+  	exit(0);
 }
