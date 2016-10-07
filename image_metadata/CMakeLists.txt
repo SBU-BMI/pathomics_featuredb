@@ -41,3 +41,6 @@ target_link_libraries(tcga_svs_image_csv ${Libraries})
 
 add_executable(quip_image_metadata quip_image_metadata.c)
 target_link_libraries(quip_image_metadata ${Libraries})
+
+add_executable(validate_image_file validate_image_file.c)
+target_link_libraries(validate_image_file ${Libraries})
