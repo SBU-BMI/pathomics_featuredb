@@ -50,7 +50,7 @@ public class InputListArray {
 					while ((line = br.readLine())!=null) {
 						String[] currLine = line.split(",");
 						if (currLine.length!=5) {
-							System.err.println("Missing parameters in input file list [studyId,caseId/imageId,fileName,shiftX,shiftY].");
+							System.err.println("Missing parameters in input file list [subjectId,caseId/imageId,fileName,shiftX,shiftY].");
 							return false;
 						} else {
 							FileParameters fileParams = new FileParameters();
