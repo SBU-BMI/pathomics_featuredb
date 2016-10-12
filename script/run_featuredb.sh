@@ -64,7 +64,7 @@ if [ "$dbCmd" = "create" ]; then
 		echo "Missing database name";
     	exit 1;
 	fi
-	mongo $dbHost:$dbPort/$dbName $FEATUREDB_DIR/database_scripts/indexes/db_index.js
+	mongo $dbHost:$dbPort/$dbName $FEATUREDB_DIR/script/indexes/db_index.js
 	exit 0;
 fi
 
