@@ -1,9 +1,8 @@
 package u24.mongodb.nuclear.segmentation.database;
 
 /**
- * Created by tdiprima on 1/20/16.
+ * Create indices.
  */
-
 import com.mongodb.*;
 
 import java.net.UnknownHostException;
@@ -24,8 +23,7 @@ public class MongoIndex {
     public static void main(String[] args) {
 
         if (args.length != 4) {
-            System.err
-                    .println("Usage: host port database");
+            System.err.println("Usage: host port database collection");
             return;
         }
 
