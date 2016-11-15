@@ -6,7 +6,7 @@ import org.opencv.core.Point;
 import java.util.ArrayList;
 
 /**
- * Created by tdiprima on 1/19/16.
+ * Point setter.
  */
 public class Poinsettia {
     private double min_x;
