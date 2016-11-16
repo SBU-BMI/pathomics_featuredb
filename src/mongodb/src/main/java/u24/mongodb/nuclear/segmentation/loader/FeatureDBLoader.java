@@ -88,6 +88,9 @@ public class FeatureDBLoader {
         inputParams.colorVal      = CommandLineArguments.getColor();
         inputParams.execComp      = CommandLineArguments.getExecutionComputation();
         inputParams.nameSpace     = CommandLineArguments.getNamespace();
+        
+        inputParams.algorithmParamNames = CommandLineArguments.getAlgorithmParamNames();
+        inputParams.algorithmParamValues = CommandLineArguments.getAlgorithmParamValues();
 
         inputParams.doSimplify    = CommandLineArguments.isSimplify();
         inputParams.minSize       = CommandLineArguments.getMinSize();

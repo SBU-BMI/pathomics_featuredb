@@ -35,6 +35,8 @@ public class InputParameters {
     public String colorVal = null;
     public String execComp = null;
     public String nameSpace = null;
+    public String algorithmParamNames = null;
+    public String algorithmParamValues = null;
     
     public boolean doSimplify = false;
     public double minSize = 0.0;

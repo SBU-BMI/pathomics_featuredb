@@ -1,6 +1,7 @@
 package u24.mongodb.nuclear.segmentation.model;
 
 import com.mongodb.BasicDBObject;
+import u24.mongodb.nuclear.segmentation.cli.InputParameters;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -32,18 +33,45 @@ public class AnalysisExecutionMetadata {
 
     private static final String _executionDocType = "execution_instance";
 
+    private String algorithmParamNames;
+
+    private String algorithmParamValues;
+
+    public AnalysisExecutionMetadata(InputParameters inputParams) {
+        this.identifier = inputParams.execID;
+        this.studyId = inputParams.studyID;
+        this.batchId = inputParams.batchID;
+        this.tagId = inputParams.tagID;
+        this.title = inputParams.execTitle;
+        this.source = inputParams.execType;
+        this.computation = inputParams.execComp;
+
+        if (inputParams.algorithmParamNames != null && inputParams.algorithmParamValues != null) {
+            this.algorithmParamNames = inputParams.algorithmParamNames;
+            this.algorithmParamValues = inputParams.algorithmParamValues;
+        }
+
+        setup();
+    }
+
     public AnalysisExecutionMetadata(String executionIdentifier,
-    								 String studyIdentifier,
-									 String batchIdentifier,
-									 String tagIdentifier,
+                                     String studyIdentifier,
+                                     String batchIdentifier,
+                                     String tagIdentifier,
                                      String executionTitle, String source, String computation) {
         this.identifier = executionIdentifier;
         this.studyId = studyIdentifier;
-		this.batchId = batchIdentifier;
-		this.tagId = tagIdentifier;
+        this.batchId = batchIdentifier;
+        this.tagId = tagIdentifier;
         this.title = executionTitle;
         this.source = source;
         this.computation = computation;
+
+        setup();
+
+    }
+
+    private void setup() {
         this.uuid = UUID.randomUUID().toString();
 
         SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
@@ -58,7 +86,7 @@ public class AnalysisExecutionMetadata {
         }
 
         this.userName = System.getProperty("user.name");
-        if (this.userName==null) this.userName = "nouser";
+        if (this.userName == null) this.userName = "nouser";
         this.executionDescription = "defaultexecution";
         this.analysisPipeline = new PipelineMetadata("dummyPipeline");
 
@@ -75,6 +103,10 @@ public class AnalysisExecutionMetadata {
                 studyStartDate, studyEndDate, studyDescription);
     }
 
+    public AnalysisStudyMetadata getStudyIdentifier() {
+        return studyMetadata;
+    }
+
     private String getStudyIdentifierValue() {
         if (studyMetadata == null)
             return null;
@@ -84,32 +116,28 @@ public class AnalysisExecutionMetadata {
             return studyMetadata.getIdentifier();
     }
 
-    /**
-     * Execution Identifier ultimately comes from MongoSimpleLoaderThreaded.
-     */
+    // Execution Identifier ultimately comes from MongoSimpleLoaderThreaded.
     public String getIdentifier() {
         return this.identifier;
     }
-    
+
     public String getStudyId() {
-    	return studyId;
+        return studyId;
     }
 
     public String getBatchId() {
-    	return batchId;
+        return batchId;
     }
 
     public String getTagId() {
-    	return tagId;
+        return tagId;
     }
 
     public String getSource() {
-        // ex: "computer"
         return source;
     }
 
     public String getComputation() {
-        // ex: "segmentation"
         return computation;
     }
 
@@ -117,9 +145,14 @@ public class AnalysisExecutionMetadata {
         return title;
     }
 
-    public AnalysisStudyMetadata getStudyIdentifier() {
-        return studyMetadata;
+    public String getAlgorithmParamNames() {
+        return algorithmParamNames;
     }
+
+    public String getAlgorithmParamValues() {
+        return algorithmParamValues;
+    }
+
 
     public BasicDBObject getMetadataDoc() {
         BasicDBObject required_doc = new BasicDBObject();

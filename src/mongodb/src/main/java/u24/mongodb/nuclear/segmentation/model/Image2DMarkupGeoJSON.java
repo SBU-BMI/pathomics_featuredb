@@ -20,7 +20,7 @@ public class Image2DMarkupGeoJSON {
     private BasicDBObject provenanceDoc;
     private static final String VERSION_NUMBER = "1.3";
     private static final String TYPE = "type";
-   
+
     public Image2DMarkupGeoJSON() {
         objDoc = new BasicDBObject();
         propDoc = new BasicDBObject();
@@ -35,16 +35,16 @@ public class Image2DMarkupGeoJSON {
         objDoc.put("object_type", "nucleus");
 
     }
-    
+
     public void setObjectType(String objType) {
-    	objDoc.put("object_type", objType);
+        objDoc.put("object_type", objType);
     }
 
     /**
      * Create the document subsection that corresponds to the segmentation result.
      * Creates the section of the JSON that contains the segmentation data, polygon information, bounding box, location,
      * and coordinates.
-     * 
+     * <p>
      * Footprint = Area. Required for caMicroscope.
      */
     public int setMarkup(double min_x,
@@ -154,23 +154,20 @@ public class Image2DMarkupGeoJSON {
 
             analysisDoc.put("execution_id", executionMetadata.getIdentifier());
             analysisDoc.put("study_id", executionMetadata.getStudyId());
-
-            // eg. "computer"
             analysisDoc.put("source", executionMetadata.getSource());
-
-            // eg. "segmentation"
             analysisDoc.put("computation", executionMetadata.getComputation());
+            analysisDoc.put("algorithmParamNames", executionMetadata.getAlgorithmParamNames());
+            analysisDoc.put("algorithmParamValues", executionMetadata.getAlgorithmParamValues());
 
             provenanceDoc.put("analysis", analysisDoc);
             provenanceDoc.put("data_loader", VERSION_NUMBER);
-			provenanceDoc.put("batch_id", executionMetadata.getBatchId());
-			provenanceDoc.put("tag_id", executionMetadata.getTagId());
+            provenanceDoc.put("batch_id", executionMetadata.getBatchId());
+            provenanceDoc.put("tag_id", executionMetadata.getTagId());
 
             objDoc.put("provenance", provenanceDoc);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
 
         return 0;
 
