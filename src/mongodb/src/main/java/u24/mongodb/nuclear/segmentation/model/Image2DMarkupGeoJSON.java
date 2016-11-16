@@ -156,8 +156,13 @@ public class Image2DMarkupGeoJSON {
             analysisDoc.put("study_id", executionMetadata.getStudyId());
             analysisDoc.put("source", executionMetadata.getSource());
             analysisDoc.put("computation", executionMetadata.getComputation());
-            analysisDoc.put("algorithmParamNames", executionMetadata.getAlgorithmParamNames());
-            analysisDoc.put("algorithmParamValues", executionMetadata.getAlgorithmParamValues());
+
+            if (executionMetadata.getAlgorithmParamNames() != null)
+            {
+                analysisDoc.put("algorithmParamNames", executionMetadata.getAlgorithmParamNames());
+                analysisDoc.put("algorithmParamValues", executionMetadata.getAlgorithmParamValues());
+
+            }
 
             provenanceDoc.put("analysis", analysisDoc);
             provenanceDoc.put("data_loader", VERSION_NUMBER);
