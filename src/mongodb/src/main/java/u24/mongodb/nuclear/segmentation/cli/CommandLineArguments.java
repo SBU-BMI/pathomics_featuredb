@@ -298,14 +298,14 @@ public class CommandLineArguments {
                 .hasArg()
                 .argName("parameters")
                 .build();
-
+/*
         Option algoParmVals = Option.builder()
                 .longOpt("evalues")
                 .desc("Analysis parameter values (e.g., {0,1,2}).")
                 .hasArg()
                 .argName("values")
                 .build();
-
+*/
         allOpts.addOption(algoID);
         allOpts.addOption(studyID);
         allOpts.addOption(batchID);
@@ -316,7 +316,7 @@ public class CommandLineArguments {
         allOpts.addOption(color);
         allOpts.addOption(algoComp);
         allOpts.addOption(algoParmNames);
-        allOpts.addOption(algoParmVals);
+        //allOpts.addOption(algoParmVals);
     }
 
     /**
@@ -550,7 +550,7 @@ public class CommandLineArguments {
             execComp = cmdLine.getOptionValue("ecomp");
         if (cmdLine.hasOption("namespace"))
             nameSpace = cmdLine.getOptionValue("namespace");
-
+/*
         if (cmdLine.hasOption("eparms") || cmdLine.hasOption("evalues")) {
             boolean p = cmdLine.hasOption("eparms");
             boolean v = cmdLine.hasOption("evalues");
@@ -566,6 +566,11 @@ public class CommandLineArguments {
                 algorithmParamValues = cmdLine.getOptionValue("evalues");
             }
 
+        }
+ */
+        if (cmdLine.hasOption("eparms"))
+        {
+            algorithmParamNames = cmdLine.getOptionValue("eparms");
         }
 
         execTitle = cmdLine.hasOption("etitle") ? cmdLine.getOptionValue("etitle") : "Algorithm: " + execID;

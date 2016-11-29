@@ -2,6 +2,8 @@ package u24.mongodb.nuclear.segmentation.model;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.mongodb.util.JSON;
+import com.mongodb.DBObject;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -159,8 +161,14 @@ public class Image2DMarkupGeoJSON {
 
             if (executionMetadata.getAlgorithmParamNames() != null)
             {
-                analysisDoc.put("algorithmParamNames", executionMetadata.getAlgorithmParamNames());
-                analysisDoc.put("algorithmParamValues", executionMetadata.getAlgorithmParamValues());
+                //analysisDoc.put("algorithmParamNames", executionMetadata.getAlgorithmParamNames());
+                //analysisDoc.put("algorithmParamValues", executionMetadata.getAlgorithmParamValues());
+                String json = executionMetadata.getAlgorithmParamNames();
+
+                DBObject dbObject = (DBObject) JSON.parse(json);
+                analysisDoc.put("algorithmParams", dbObject);
+
+                //collection.insert(dbObject);
 
             }
 

@@ -46,9 +46,14 @@ public class AnalysisExecutionMetadata {
         this.source = inputParams.execType;
         this.computation = inputParams.execComp;
 
-        if (inputParams.algorithmParamNames != null && inputParams.algorithmParamValues != null) {
+        //if (inputParams.algorithmParamNames != null && inputParams.algorithmParamValues != null) {
+            //this.algorithmParamNames = inputParams.algorithmParamNames;
+            //this.algorithmParamValues = inputParams.algorithmParamValues;
+        //}
+
+        if (inputParams.algorithmParamNames != null)
+        {
             this.algorithmParamNames = inputParams.algorithmParamNames;
-            this.algorithmParamValues = inputParams.algorithmParamValues;
         }
 
         setup();
