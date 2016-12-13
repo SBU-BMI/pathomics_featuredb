@@ -157,6 +157,7 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
                     imgQuery.put("subject_id", subjectId);
                     DBObject qryResult = segDB.getImagesCollection().findOne(imgQuery);
                     if (qryResult == null) {
+                        System.err.println("ProcessCSVFeaturePolygonFile.java");
                         System.err.println("ERROR: Cannot find caseid: " + caseId);
                         return;
                     }
@@ -174,7 +175,8 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
 
                     // Check if dimensions are negative or zero
                     if (image_width <= 0.0 || image_height <= 0.0) {
-                        System.err.println("ERROR: Cannot find caseId: " + caseId);
+                        System.err.println("ProcessCSVFeaturePolygonFile.java");
+                        System.err.println("ERROR: Dimensions are negative or zero.");
                         return;
                     }
                 } else {

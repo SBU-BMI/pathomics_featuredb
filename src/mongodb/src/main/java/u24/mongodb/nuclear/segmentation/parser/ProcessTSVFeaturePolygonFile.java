@@ -43,7 +43,7 @@ public class ProcessTSVFeaturePolygonFile implements ProcessFile {
     public ProcessTSVFeaturePolygonFile(String fileName,
     		String subjectId,
     		String caseId,
-    		AnalysisExecutionMetadata execMeta, 
+    		AnalysisExecutionMetadata execMeta,
     		InputParameters inputParams,
     		ResultsDatabase segDB) {
     	this.inputParams = inputParams;
@@ -58,7 +58,7 @@ public class ProcessTSVFeaturePolygonFile implements ProcessFile {
     public ProcessTSVFeaturePolygonFile() {
     }
 
-    public ProcessTSVFeaturePolygonFile(FileParameters fileParams, 
+    public ProcessTSVFeaturePolygonFile(FileParameters fileParams,
     		InputParameters inputParams,
     		ResultsDatabase segDB) {
     	this.fileName = fileParams.getFileName();
@@ -67,12 +67,12 @@ public class ProcessTSVFeaturePolygonFile implements ProcessFile {
     	this.inputParams = inputParams;
     	this.segDB = segDB;
     	this.imgExecMap = new ImageExecutionMapping();
-    	
-    	this.execMeta = new AnalysisExecutionMetadata(inputParams.execID, 
-				inputParams.studyID, inputParams.batchID,  inputParams.tagID, inputParams.execTitle, 
+
+    	this.execMeta = new AnalysisExecutionMetadata(inputParams.execID,
+				inputParams.studyID, inputParams.batchID,  inputParams.tagID, inputParams.execTitle,
 				inputParams.execType, inputParams.execComp);
     }
-    
+
     public boolean isNumeric(String str) {
         try {
             Double.parseDouble(str);
@@ -131,9 +131,9 @@ public class ProcessTSVFeaturePolygonFile implements ProcessFile {
         try {
             double mpp_x = 0.25;
             double mpp_y = 0.25;
-            double image_width  = 1.0; 
-            double image_height = 1.0; 
-            String cancer_type  = "unknown"; 
+            double image_width  = 1.0;
+            double image_height = 1.0;
+            String cancer_type  = "unknown";
         	if (inputParams.doNormalize) {
         		if (inputParams.getFromDB) {
         			// Query and retrieve image metadata values
@@ -142,6 +142,7 @@ public class ProcessTSVFeaturePolygonFile implements ProcessFile {
 					imgQuery.put("subject_id", subjectId);
 					DBObject qryResult = segDB.getImagesCollection().findOne(imgQuery);
 					if (qryResult == null) {
+                        System.err.println("ProcessTSVFeaturePolygonFile.java");
 						System.err.println("ERROR: Cannot find caseid: " + caseId);
 						return;
 					}
@@ -159,7 +160,8 @@ public class ProcessTSVFeaturePolygonFile implements ProcessFile {
 
 					// Check if dimensions are negative or zero
 					if (image_width <= 0.0 || image_height <= 0.0) {
-						System.err.println("ERROR: Cannot find caseId: " + caseId);
+                        System.err.println("ProcessTSVFeaturePolygonFile.java");
+						System.err.println("ERROR: Dimensions are negative or zero.");
 						return;
 					}
         		} else {
