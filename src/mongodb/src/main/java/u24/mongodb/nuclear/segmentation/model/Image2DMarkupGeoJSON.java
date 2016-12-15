@@ -159,18 +159,17 @@ public class Image2DMarkupGeoJSON {
             analysisDoc.put("source", executionMetadata.getSource());
             analysisDoc.put("computation", executionMetadata.getComputation());
 
+            /*
+            // TODO:
             if (executionMetadata.getAlgorithmParamNames() != null)
             {
-                //analysisDoc.put("algorithmParamNames", executionMetadata.getAlgorithmParamNames());
-                //analysisDoc.put("algorithmParamValues", executionMetadata.getAlgorithmParamValues());
                 String json = executionMetadata.getAlgorithmParamNames();
 
                 DBObject dbObject = (DBObject) JSON.parse(json);
                 analysisDoc.put("algorithmParams", dbObject);
 
-                //collection.insert(dbObject);
-
             }
+            */
 
             provenanceDoc.put("analysis", analysisDoc);
             provenanceDoc.put("data_loader", VERSION_NUMBER);
