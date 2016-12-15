@@ -155,6 +155,7 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
                     BasicDBObject imgQuery = new BasicDBObject();
                     imgQuery.put("case_id", caseId);
                     imgQuery.put("subject_id", subjectId);
+                    System.out.println("imgQuery\n" + imgQuery.toString());
                     DBObject qryResult = segDB.getImagesCollection().findOne(imgQuery);
                     if (qryResult == null) {
                         System.err.println("ProcessCSVFeaturePolygonFile.java");

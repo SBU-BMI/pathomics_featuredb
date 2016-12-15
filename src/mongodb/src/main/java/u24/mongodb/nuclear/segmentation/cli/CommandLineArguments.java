@@ -54,8 +54,7 @@ public class CommandLineArguments {
     private static String execComp = "segmentation";
     private static String nameSpace = "http://u24.bmi.stonybrook.edu/v1";
 
-    private static String algorithmParamNames = null;
-    private static String algorithmParamValues = null;
+    private static String algorithmParameters = null;
 
     private static boolean doSimplify = false;
     private static double minSize = 0.0;
@@ -550,27 +549,9 @@ public class CommandLineArguments {
             execComp = cmdLine.getOptionValue("ecomp");
         if (cmdLine.hasOption("namespace"))
             nameSpace = cmdLine.getOptionValue("namespace");
-/*
-        if (cmdLine.hasOption("eparms") || cmdLine.hasOption("evalues")) {
-            boolean p = cmdLine.hasOption("eparms");
-            boolean v = cmdLine.hasOption("evalues");
 
-            if ((!p && v) || (!v && p)) {
-
-                System.err.println("ERROR: both <eparms> and <evalues> must be defined.");
-                return false;
-            }
-            else
-            {
-                algorithmParamNames = cmdLine.getOptionValue("eparms");
-                algorithmParamValues = cmdLine.getOptionValue("evalues");
-            }
-
-        }
- */
-        if (cmdLine.hasOption("eparms"))
-        {
-            algorithmParamNames = cmdLine.getOptionValue("eparms");
+        if (cmdLine.hasOption("eparms")) {
+            algorithmParameters = cmdLine.getOptionValue("eparms");
         }
 
         execTitle = cmdLine.hasOption("etitle") ? cmdLine.getOptionValue("etitle") : "Algorithm: " + execID;
@@ -751,11 +732,8 @@ public class CommandLineArguments {
         return execColor;
     }
 
-    public static String getAlgorithmParamNames() {
-        return algorithmParamNames;
+    public static String getAlgorithmParameters() {
+        return algorithmParameters;
     }
 
-    public static String getAlgorithmParamValues() {
-        return algorithmParamValues;
-    }
 }

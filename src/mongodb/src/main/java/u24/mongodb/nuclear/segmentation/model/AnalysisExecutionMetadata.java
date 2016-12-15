@@ -33,9 +33,7 @@ public class AnalysisExecutionMetadata {
 
     private static final String _executionDocType = "execution_instance";
 
-    private String algorithmParamNames;
-
-    private String algorithmParamValues;
+    private String algorithmParameters;
 
     public AnalysisExecutionMetadata(InputParameters inputParams) {
         this.identifier = inputParams.execID;
@@ -46,14 +44,8 @@ public class AnalysisExecutionMetadata {
         this.source = inputParams.execType;
         this.computation = inputParams.execComp;
 
-        //if (inputParams.algorithmParamNames != null && inputParams.algorithmParamValues != null) {
-            //this.algorithmParamNames = inputParams.algorithmParamNames;
-            //this.algorithmParamValues = inputParams.algorithmParamValues;
-        //}
-
-        if (inputParams.algorithmParamNames != null)
-        {
-            this.algorithmParamNames = inputParams.algorithmParamNames;
+        if (inputParams.algorithmParameters != null) {
+            this.algorithmParameters = inputParams.algorithmParameters;
         }
 
         setup();
@@ -150,14 +142,9 @@ public class AnalysisExecutionMetadata {
         return title;
     }
 
-    public String getAlgorithmParamNames() {
-        return algorithmParamNames;
+    public String getAlgorithmParameters() {
+        return algorithmParameters;
     }
-
-    public String getAlgorithmParamValues() {
-        return algorithmParamValues;
-    }
-
 
     public BasicDBObject getMetadataDoc() {
         BasicDBObject required_doc = new BasicDBObject();

@@ -58,43 +58,42 @@ public class FeatureDBLoader {
     private static boolean setInputParameters() {
         inputParams = new InputParameters();
 
-        inputParams.dbServer      = CommandLineArguments.getDBServer();
+        inputParams.dbServer = CommandLineArguments.getDBServer();
 
-        inputParams.isQuip        = CommandLineArguments.isQuip();
+        inputParams.isQuip = CommandLineArguments.isQuip();
 
-        inputParams.inputList     = CommandLineArguments.getInpList();
-        inputParams.imageFile     = CommandLineArguments.getInpImage();
-        inputParams.inputFile     = CommandLineArguments.getInpFile();
-        inputParams.outFolder     = CommandLineArguments.getOutFoldername();
+        inputParams.inputList = CommandLineArguments.getInpList();
+        inputParams.imageFile = CommandLineArguments.getInpImage();
+        inputParams.inputFile = CommandLineArguments.getInpFile();
+        inputParams.outFolder = CommandLineArguments.getOutFoldername();
 
-        inputParams.caseID        = CommandLineArguments.getCaseID();
-        inputParams.subjectID     = CommandLineArguments.getSubjectID();
+        inputParams.caseID = CommandLineArguments.getCaseID();
+        inputParams.subjectID = CommandLineArguments.getSubjectID();
 
-        inputParams.doNormalize   = CommandLineArguments.isNormalize();
+        inputParams.doNormalize = CommandLineArguments.isNormalize();
         inputParams.selfNormalize = CommandLineArguments.isSelfNormalize();
-        inputParams.getFromDB     = CommandLineArguments.isGetFromDB();
+        inputParams.getFromDB = CommandLineArguments.isGetFromDB();
 
-        inputParams.width         = CommandLineArguments.getWidth();
-        inputParams.height        = CommandLineArguments.getHeight();
-        inputParams.shiftX        = CommandLineArguments.getShiftX();
-        inputParams.shiftY        = CommandLineArguments.getShiftY();
+        inputParams.width = CommandLineArguments.getWidth();
+        inputParams.height = CommandLineArguments.getHeight();
+        inputParams.shiftX = CommandLineArguments.getShiftX();
+        inputParams.shiftY = CommandLineArguments.getShiftY();
 
-        inputParams.execID        = CommandLineArguments.getExecutionID();
-        inputParams.studyID       = CommandLineArguments.getStudyID();
-        inputParams.batchID       = CommandLineArguments.getBatchID();
-        inputParams.tagID         = CommandLineArguments.getTagID();
-        inputParams.execType      = CommandLineArguments.getExecutionType();
-        inputParams.execTitle     = CommandLineArguments.getExecutionTitle();
-        inputParams.colorVal      = CommandLineArguments.getColor();
-        inputParams.execComp      = CommandLineArguments.getExecutionComputation();
-        inputParams.nameSpace     = CommandLineArguments.getNamespace();
-        
-        inputParams.algorithmParamNames = CommandLineArguments.getAlgorithmParamNames();
-        inputParams.algorithmParamValues = CommandLineArguments.getAlgorithmParamValues();
+        inputParams.execID = CommandLineArguments.getExecutionID();
+        inputParams.studyID = CommandLineArguments.getStudyID();
+        inputParams.batchID = CommandLineArguments.getBatchID();
+        inputParams.tagID = CommandLineArguments.getTagID();
+        inputParams.execType = CommandLineArguments.getExecutionType();
+        inputParams.execTitle = CommandLineArguments.getExecutionTitle();
+        inputParams.colorVal = CommandLineArguments.getColor();
+        inputParams.execComp = CommandLineArguments.getExecutionComputation();
+        inputParams.nameSpace = CommandLineArguments.getNamespace();
 
-        inputParams.doSimplify    = CommandLineArguments.isSimplify();
-        inputParams.minSize       = CommandLineArguments.getMinSize();
-        inputParams.maxSize       = CommandLineArguments.getMaxSize();
+        inputParams.algorithmParameters = CommandLineArguments.getAlgorithmParameters();
+
+        inputParams.doSimplify = CommandLineArguments.isSimplify();
+        inputParams.minSize = CommandLineArguments.getMinSize();
+        inputParams.maxSize = CommandLineArguments.getMaxSize();
 
         // Handle writing to output file instead of database
         inputParams.outFileWriter = null;
@@ -206,17 +205,17 @@ public class FeatureDBLoader {
                     .println("Please enter valid image width and height (>0) values.");
             return;
         }
-        int shiftX         = CommandLineArguments.getShiftX();
-        int shiftY         = CommandLineArguments.getShiftY();
+        int shiftX = CommandLineArguments.getShiftX();
+        int shiftY = CommandLineArguments.getShiftY();
 
-        String execId      = CommandLineArguments.getExecutionID();
-        String execType    = CommandLineArguments.getExecutionType();
+        String execId = CommandLineArguments.getExecutionID();
+        String execType = CommandLineArguments.getExecutionType();
         String computation = "markup";
-        String execName    = CommandLineArguments.getExecutionTitle();
-        String colorVal    = CommandLineArguments.getColor();
-        String studyId     = CommandLineArguments.getStudyID();
-        String batchId     = CommandLineArguments.getBatchID();
-        String tagId       = CommandLineArguments.getTagID();
+        String execName = CommandLineArguments.getExecutionTitle();
+        String colorVal = CommandLineArguments.getColor();
+        String studyId = CommandLineArguments.getStudyID();
+        String batchId = CommandLineArguments.getBatchID();
+        String tagId = CommandLineArguments.getTagID();
 
         numThreads = 1;
         try {
