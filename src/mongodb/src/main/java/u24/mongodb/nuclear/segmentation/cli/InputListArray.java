@@ -22,7 +22,7 @@ public class InputListArray {
 		try {
 			if (inpParams.isQuip) {
 				Path dir = Paths.get(inpParams.quipFolder);
-				try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.json")) {
+				try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*-algmeta.json")) {
 				    for (Path entry: stream) {
 				    	FileParameters fileParams = new FileParameters();
 						fileParams.setSubjectId("quip");

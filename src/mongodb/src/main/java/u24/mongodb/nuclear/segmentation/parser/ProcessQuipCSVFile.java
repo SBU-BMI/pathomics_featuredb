@@ -47,6 +47,7 @@ import com.vividsolutions.jts.geom.Geometry;
 public class ProcessQuipCSVFile implements ProcessFile {
 	InputParameters inputParams;	
 	private String fileName;
+	private String quipFolder;
 	private String caseId;
 	private String subjectId;
 	private AnalysisExecutionMetadata execMeta;
@@ -66,6 +67,7 @@ public class ProcessQuipCSVFile implements ProcessFile {
 	
 	public ProcessQuipCSVFile() {
 		this.fileName = null;
+		this.quipFolder = null;
 		this.subjectId = null;		
 		this.caseId = null;
 		this.execMeta = null;
@@ -77,7 +79,8 @@ public class ProcessQuipCSVFile implements ProcessFile {
 
 	public ProcessQuipCSVFile(String fileName, String subjectId, String caseId,
 			AnalysisExecutionMetadata execMeta, InputParameters inputParams, ResultsDatabase segDB) {
-		this.fileName = fileName;
+		this.quipFolder = ".";
+		this.fileName = quipFolder + "/" + fileName;
 		this.subjectId = subjectId;		
 		this.caseId = caseId;
 		this.execMeta = execMeta;
@@ -91,7 +94,8 @@ public class ProcessQuipCSVFile implements ProcessFile {
 	
 	public ProcessQuipCSVFile(FileParameters fileParams,
 			InputParameters inputParams, ResultsDatabase segDB) {
-		this.fileName = fileParams.getFileName();
+		this.quipFolder = fileParams.getQuipFolder();
+		this.fileName = quipFolder + "/" + fileParams.getFileName();
 		this.subjectId = fileParams.getSubjectId();		
 		this.caseId = fileParams.getCaseId();
 		this.inputParams = inputParams;

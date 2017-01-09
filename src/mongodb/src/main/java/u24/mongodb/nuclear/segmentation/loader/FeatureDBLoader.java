@@ -65,6 +65,7 @@ public class FeatureDBLoader {
         inputParams.inputList = CommandLineArguments.getInpList();
         inputParams.imageFile = CommandLineArguments.getInpImage();
         inputParams.inputFile = CommandLineArguments.getInpFile();
+		inputParams.quipFolder = CommandLineArguments.getQuipFolder();
         inputParams.outFolder = CommandLineArguments.getOutFoldername();
 
         inputParams.caseID = CommandLineArguments.getCaseID();
@@ -145,7 +146,7 @@ public class FeatureDBLoader {
                             + " CaseID: " + fileParams.getCaseId());
                 } else {
                     System.out.println("Processing[" + fi + "]: "
-                            + " Filename: " + fileParams.getFileName());
+                            + " Filename: " + fileParams.getQuipFolder() + "/" + fileParams.getFileName());
                 }
 
                 int check_done = 0;

@@ -62,7 +62,7 @@ public class IterateInputData implements Iterator<String> {
 			setFileList(inpParams.inputList);
 		} else if (inpParams.inputFile!=null) {
 			setSingleFile(inpParams.subjectID,inpParams.caseID,inpParams.inputFile,inpParams.shiftX,inpParams.shiftY);
-		} else {
+		} else if (inpParams.quipFolder==null) {
 			System.err.println("Input file or list should be defined.");
 			return false;
 		}
