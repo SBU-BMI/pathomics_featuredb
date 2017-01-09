@@ -1,6 +1,7 @@
 package u24.mongodb.nuclear.segmentation.cli;
 
 import java.io.BufferedReader;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,27 +21,20 @@ public class InputListArray {
 	public boolean setListArray(InputParameters inpParams) {
 		try {
 			if (inpParams.isQuip) {
-				if (inpParams.inputList!=null) {
-					Path path = Paths.get(inpParams.inputList);
-					BufferedReader br = Files.newBufferedReader(path, ENCODING);
-					String line;
-					while ((line = br.readLine())!=null) {
-							FileParameters fileParams = new FileParameters();
-							fileParams.setSubjectId("quip");
-							fileParams.setCaseId("quip");
-							fileParams.setFileName(line);
-							fileParams.setShiftX(0);
-							fileParams.setShiftY(0);
-							fileList.add(fileParams);
-					}
-				} else if (inpParams.inputFile!=null) {
-					FileParameters fileParams = new FileParameters();
-					fileParams.setSubjectId("quip");
-					fileParams.setCaseId("quip");
-					fileParams.setFileName("quip");
-					fileParams.setShiftX(0);
-					fileParams.setShiftY(0);
-					fileList.add(fileParams);
+				Path dir = Paths.get(inpParams.quipFolder);
+				try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.json")) {
+				    for (Path entry: stream) {
+				    	FileParameters fileParams = new FileParameters();
+						fileParams.setSubjectId("quip");
+						fileParams.setCaseId("quip");
+						fileParams.setFileName(entry.getFileName().toString());
+						fileParams.setQuipFolder(inpParams.quipFolder);
+						fileParams.setShiftX(0);
+						fileParams.setShiftY(0);
+						fileList.add(fileParams);	
+				    }
+				} catch (Exception x) {
+				    System.err.println(x);
 				}
 			} else {
 				if (inpParams.inputList!=null) {

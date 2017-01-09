@@ -11,6 +11,7 @@ public class InputParameters {
     public String inputList = null;
     public String imageFile = null;
     public String inputFile = null;
+    public String quipFolder = null;
     public String outFolder = null;
 
     public String caseID = null;

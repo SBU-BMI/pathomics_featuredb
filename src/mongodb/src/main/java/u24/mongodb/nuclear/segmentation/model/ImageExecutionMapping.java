@@ -60,7 +60,7 @@ public class ImageExecutionMapping {
                 execMeta.getIdentifier());
         provenance_doc.put("study_id", execMeta.getStudyId());
         provenance_doc.put("type", execMeta.getSource());
-		provenance_doc.put("quip_meta",quipMeta);
+		provenance_doc.put("algorithm_params",quipMeta);
 
         metadataDoc.put("image", imgmeta_doc);
         metadataDoc.put("provenance", provenance_doc);

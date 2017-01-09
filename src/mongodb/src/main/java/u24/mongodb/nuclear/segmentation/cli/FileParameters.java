@@ -4,6 +4,7 @@ public class FileParameters {
 	private String subjectId = null;
 	private String caseId 	 = null;
 	private String fileName  = null;
+	private String quipFolder = null;
 	private int shiftX = 0;
 	private int shiftY = 0;
 	
@@ -45,6 +46,14 @@ public class FileParameters {
 
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
+	}
+	
+	public String getQuipFolder() {
+		return quipFolder;
+	}
+	
+	public void setQuipFolder(String quipFolder) {
+		this.quipFolder = quipFolder;
 	}
 
 	public int getShiftX() {

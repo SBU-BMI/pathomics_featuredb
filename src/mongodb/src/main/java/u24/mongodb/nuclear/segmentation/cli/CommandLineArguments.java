@@ -30,6 +30,7 @@ public class CommandLineArguments {
     private static String inpList = null;
     private static String imgFile = null;
     private static String inpFile = null;
+    private static String quipFolder = null;
     private static String outFolder = null;
 
     private static String caseID = null;
@@ -117,6 +118,8 @@ public class CommandLineArguments {
         Option isQUIP = Option
                 .builder()
                 .longOpt("quip")
+                .hasArg()
+                .argName("quip folder")
                 .desc("QUIP analysis file collection")
                 .build();
         allOpts.addOption(isQUIP);
@@ -389,25 +392,23 @@ public class CommandLineArguments {
                 System.err.println("ERROR: aperio option" + "requires --inpfile parameter.");
             }
             isAperio = true;
-        } else if (inpType.equals("csv")
-                || inpType.equals("tsv")
-                || inpType.equals("rad")
-                || inpType.equals("mask")) {
-            if (cmdLine.hasOption("inplist")) {
-                inpList = cmdLine.getOptionValue("inplist");
-            } else if (cmdLine.hasOption("inpfile")) {
-                inpFile = cmdLine.getOptionValue("inpfile");
-            } else {
-                System.err.println("ERROR: --inplist or --inpfile parameter is required.");
-                return false;
-            }
-        } else {
-            System.err.println("ERROR: Unknown value: (" + inpType + ") for inptype.");
-            return false;
-        }
-
-        if (cmdLine.hasOption("quip")) isQuip = true;
-
+		} else if (inpType.equals("csv") || inpType.equals("tsv") || inpType.equals("rad") || inpType.equals("mask")) {
+			if (cmdLine.hasOption("inplist")) {
+				inpList = cmdLine.getOptionValue("inplist");
+			} else if (cmdLine.hasOption("inpfile")) {
+				inpFile = cmdLine.getOptionValue("inpfile");
+			} else if (cmdLine.hasOption("quip")) {
+				isQuip = true;
+				quipFolder = cmdLine.getOptionValue("quip");
+			} else {
+				System.err.println("ERROR: --inplist or --inpfile or --quip parameter is required.");
+				return false;
+			}
+		} else {
+			System.err.println("ERROR: Unknown value: (" + inpType + ") for inptype.");
+			return false;
+		}
+        
         return true;
     }
 
@@ -638,6 +639,10 @@ public class CommandLineArguments {
 
     public static String getInpFile() {
         return inpFile;
+    }
+    
+    public static String getQuipFolder() {
+    	return quipFolder;
     }
 
     public static String getOutFoldername() {
