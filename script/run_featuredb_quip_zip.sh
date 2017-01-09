@@ -10,7 +10,7 @@ if [ -z $OPENCV_JAVA_DIR ]; then
 	exit 1;
 fi
 
-if [ "$#" -lt 1 ]; then
+if [ "$#" -lt 4 ]; then
 	echo "Usage: run_featuredb_quip_zip.sh <dbHost> <dbPort> <dbName> <quipZipFile>"
 	exit 1;
 fi
