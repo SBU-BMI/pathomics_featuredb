@@ -25,7 +25,7 @@ if [ "$#" -lt 1 ]; then
 	echo "				parameters: --dbname <database name> [--dbhost <mongodb host> --dbport <mongodb port>]"
 	echo "    imgmeta  - load image metadata"
 	echo "				parameters: --dbname <database name> --imgmeta <image metadata file> [ --dbhost <mongodb host> --dbport <mongodb port>]"
-	echo "    loadquip - load results stored in quip zip files
+	echo "    loadquip - load results stored in quip zip files"
 	echo "              parameters: --dbname <database name> --dbhost <mongodb host> --dbport <mongodb port> --quip <quip zip file>"
 	echo "	  load     - load analysis results"
 	echo "				parameters: --dbname <database name> [--dbhost <mongodb host> --dbport <mongodb port>] <additional parameters>"
