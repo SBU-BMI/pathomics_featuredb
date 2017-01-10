@@ -178,21 +178,57 @@ public class ProcessQuipCSVFile implements ProcessFile {
 			subjectId = quipMeta.get("subject_id").toString();
 			String execId = quipMeta.get("analysis_id").toString();
 			String execTitle = quipMeta.get("analysis_desc").toString();
-			
+
+			double mpp_x        = 0.25;
+			double mpp_y        = 0.25;
+			double image_width  = -1.0;
+			double image_height = -1.0;
+			String cancer_type  = "unknown";
+			if (inputParams.getFromDB) {
+				// Query and retrieve image metadata values
+				BasicDBObject imgQuery = new BasicDBObject();
+				imgQuery.put("case_id", caseId);
+				imgQuery.put("subject_id", subjectId);
+
+				DBObject qryResult = segDB.getImagesCollection().findOne(imgQuery);
+				if (qryResult != null) {
+					mpp_x = Double.parseDouble(qryResult.get("mpp_x").toString());
+					mpp_y = Double.parseDouble(qryResult.get("mpp_y").toString());
+					image_width = Double.parseDouble(qryResult.get("width").toString());
+					image_height = Double.parseDouble(qryResult.get("height").toString());
+					cancer_type = qryResult.get("cancer_type").toString();
+				} else { // try getting the values from quip metadata JSON document
+					mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
+					mpp_y = mpp_x;
+					image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
+					image_height = Double.parseDouble(quipMeta.get("image_height").toString()); 	                	
+				}
+			} else {
+				mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
+				mpp_y = mpp_x;
+				image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
+				image_height = Double.parseDouble(quipMeta.get("image_height").toString()); 
+			}
+
+			if (mpp_x < 0 || mpp_y < 0) {
+				System.err.println("ERROR: Negative mpp values: (" + mpp_x + " " + mpp_y + "). Image: " + caseId);
+				return;
+			}
+
+			// Check if dimensions are negative or zero
+			if (image_width <= 0.0 || image_height <= 0.0) {
+				System.err.println("ERROR: Dimensions are negative or zero.");
+				return;
+			}
+
 			execMeta = new AnalysisExecutionMetadata(execId, inputParams.studyID, inputParams.batchID,  
 					inputParams.tagID, execTitle, inputParams.execType, inputParams.execComp);
 
-			double mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
-			double mpp_y = mpp_x;
-			double image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
-			double image_height = Double.parseDouble(quipMeta.get("image_height").toString()); 
-			String cancer_type = "unknown";
-			
 			String csvFilePrefix  = quipMeta.get("out_file_prefix").toString();
 			String csvFilePathTmp = (new File(fileName)).getAbsolutePath();
 			String csvFilePath    = csvFilePathTmp.substring(0,csvFilePathTmp.lastIndexOf(File.separator));
 			String csvFile = csvFilePath + "/" + csvFilePrefix + "-features.csv";
-			
+
 			SimpleImageMetadata imgMeta = new SimpleImageMetadata();
 			imgMeta.setIdentifier(caseId);
 			imgMeta.setCaseid(caseId);
@@ -208,7 +244,7 @@ public class ProcessQuipCSVFile implements ProcessFile {
 			if (!imgExecMap.checkExists(segDB)) {
 				segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
 			}
-			
+
 			// Check and register additional analysis provenance data
 			BasicDBObject provQuery = new BasicDBObject();
 			provQuery.put("analysis_execution_id", execId);
