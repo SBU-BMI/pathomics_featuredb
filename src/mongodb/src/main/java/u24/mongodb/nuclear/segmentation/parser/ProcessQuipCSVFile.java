@@ -174,6 +174,23 @@ public class ProcessQuipCSVFile implements ProcessFile {
 			}
 			brMeta.close();
 
+			if (quipMeta.get("case_id")==null) {
+				System.err.println("Cannot find case_id in analysis metadata.");
+				return;
+			}
+			if (quipMeta.get("subject_id")==null) {
+				System.err.println("Cannot find subject_id in analysis metadata.");
+				return;
+			}
+			if (quipMeta.get("analysis_id")==null) {
+				System.err.println("Cannot find analysis_id in analysis metadata.");
+				return;
+			}
+			if (quipMeta.get("analysis_desc")==null) {
+				System.err.println("Cannot find analysis_desc in analysis metadata.");
+				return;
+			}
+			
 			caseId    = quipMeta.get("case_id").toString();
 			subjectId = quipMeta.get("subject_id").toString();
 			String execId = quipMeta.get("analysis_id").toString();
@@ -192,22 +209,73 @@ public class ProcessQuipCSVFile implements ProcessFile {
 
 				DBObject qryResult = segDB.getImagesCollection().findOne(imgQuery);
 				if (qryResult != null) {
-					mpp_x = Double.parseDouble(qryResult.get("mpp_x").toString());
-					mpp_y = Double.parseDouble(qryResult.get("mpp_y").toString());
-					image_width = Double.parseDouble(qryResult.get("width").toString());
-					image_height = Double.parseDouble(qryResult.get("height").toString());
-					cancer_type = qryResult.get("cancer_type").toString();
+					if (qryResult.get("mpp_x")!=null) 
+						mpp_x = Double.parseDouble(qryResult.get("mpp_x").toString());
+					else {
+						System.err.println("Cannot find mpp_x in image metadata.");
+						return;
+					}
+					if (qryResult.get("mpp_y")!=null)
+						mpp_y = Double.parseDouble(qryResult.get("mpp_y").toString());
+					else {
+						System.err.println("Cannot find mpp_y in image metadata.");
+						return;
+					}
+					if (qryResult.get("width")!=null)
+						image_width = Double.parseDouble(qryResult.get("width").toString());
+					else {
+						System.err.println("Cannot find the width field in image metadata.");
+						return;
+					}
+					if (qryResult.get("height")!=null)
+						image_height = Double.parseDouble(qryResult.get("height").toString());
+					else {
+						System.err.println("Cannot find the height field in image metadata.");
+						return;
+					}
+					if (qryResult.get("cancer_type")!=null)
+						cancer_type = qryResult.get("cancer_type").toString();
 				} else { // try getting the values from quip metadata JSON document
-					mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
+					if (quipMeta.get("mpp")!=null)
+						mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
+					else {
+						System.err.println("Cannot find mpp in algorithm metadata.");
+						return;
+					}
 					mpp_y = mpp_x;
-					image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
-					image_height = Double.parseDouble(quipMeta.get("image_height").toString()); 	                	
+					if (quipMeta.get("image_width")!=null)
+						image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
+					else {
+						System.err.println("Cannot find image_width in algorithm metadata.");
+						return;
+					}
+					if (quipMeta.get("image_height")!=null)
+						image_height = Double.parseDouble(quipMeta.get("image_height").toString());
+					else {
+						System.err.println("Cannot find image_height in algorithm metadata.");
+						return;
+					}
 				}
 			} else {
-				mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
+				if (quipMeta.get("mpp")!=null)
+					mpp_x = Double.parseDouble(quipMeta.get("mpp").toString());
+				else {
+					System.err.println("Cannot find mpp in algorithm metadata.");
+					return;
+				}
 				mpp_y = mpp_x;
-				image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
-				image_height = Double.parseDouble(quipMeta.get("image_height").toString()); 
+				if (quipMeta.get("image_width")!=null)
+					image_width  = Double.parseDouble(quipMeta.get("image_width").toString()); 
+				else {
+					System.err.println("Cannot find image_width in algorithm metadata.");
+					return;
+				}
+				if (quipMeta.get("image_height")!=null)
+					image_height = Double.parseDouble(quipMeta.get("image_height").toString());
+				else {
+					System.err.println("Cannot find image_height in algorithm metadata.");
+					return;
+				}
 			}
 
 			if (mpp_x < 0 || mpp_y < 0) {
