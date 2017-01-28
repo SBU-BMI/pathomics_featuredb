@@ -54,8 +54,10 @@ public class Image2DMarkupGeoJSON {
                          boolean coordinatesNormalized, BasicDBList objPointsList) {
 
         try {
-            objDoc.put("x", min_x);
-            objDoc.put("y", min_y);
+        	double mid_x = (min_x+max_x)/2;
+        	double mid_y = (min_y+max_y)/2;
+            objDoc.put("x", mid_x);
+            objDoc.put("y", mid_y);
             objDoc.put("normalized", Boolean.toString(coordinatesNormalized));
 
             // Add bounding box
