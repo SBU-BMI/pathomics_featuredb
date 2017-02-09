@@ -56,7 +56,8 @@ public class ResultsDatabase {
             if (resultDbName != null)
                 resultsDatabase = resultDbName;
             db = mongoClient.getDB(resultsDatabase);
-            mongoClient.setWriteConcern(WriteConcern.UNACKNOWLEDGED);
+            // mongoClient.setWriteConcern(WriteConcern.UNACKNOWLEDGED);
+            mongoClient.setWriteConcern(WriteConcern.ACKNOWLEDGED);
         } catch (Exception e) {
             System.err.println(e.getClass().getName() + ": " + e.getMessage());
         }
