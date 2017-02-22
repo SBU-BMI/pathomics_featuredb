@@ -15,4 +15,4 @@ include 'api'
 include 'services:webservice'
 */
 
-rootProject.name = 'featuredb_new_api'
+rootProject.name = 'pathomics_featuredb'
