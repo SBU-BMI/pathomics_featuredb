@@ -167,7 +167,7 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
                     mpp_y = Double.parseDouble(qryResult.get("mpp_y").toString());
                     image_width = Double.parseDouble(qryResult.get("width").toString());
                     image_height = Double.parseDouble(qryResult.get("height").toString());
-                    cancer_type = qryResult.get("cancer_type").toString();
+                    cancer_type = "no_value"; // qryResult.get("cancer_type").toString();
 
                     if (mpp_x < 0 || mpp_y < 0) {
                         System.err.println("ERROR: Negative mpp values: (" + mpp_x + " " + mpp_y + "). Image: " + caseId);
