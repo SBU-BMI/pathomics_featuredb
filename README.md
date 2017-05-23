@@ -1,5 +1,6 @@
 #pathomics_featuredb
 
+Upgrade to latest java client api
 
 ##Build
 
