@@ -121,7 +121,7 @@ public class FeatureDBLoader {
             if (!setInputParameters())
                 return;
 
-            if (inputParams.inputList == null || inputParams.outFileWriter != null)
+            if (inputParams.isQuip==false && (inputParams.inputList == null || inputParams.outFileWriter != null))
                 numThreads = 1;  // if a single file or output to file, use one thread
 
             ResultsDatabase[] segDB = setupDatabaseConnections(numThreads, inputParams.dbServer);
