@@ -1,9 +1,7 @@
 package u24.mongodb.nuclear.segmentation.model;
 
-
 import u24.mongodb.nuclear.segmentation.cli.InputParameters;
 import org.bson.Document;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
