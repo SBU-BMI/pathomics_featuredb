@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -308,6 +309,10 @@ public class ProcessQuipCSVFile implements ProcessFile {
 				System.err.println("Error in input file:" + fileName + ". Extra comma at the end.");
 				return;
 			}
+
+			
+			List<Document> obj_2d_documents = new ArrayList<Document>(); // initialize array
+
 			int lineCnt = 0;
 			while ((line = br.readLine()) != null) {
 				// Parse the segmentation results
@@ -354,10 +359,12 @@ public class ProcessQuipCSVFile implements ProcessFile {
 					obj_2d.setProvenance(execMeta, imgMeta);
 
 					// load to segmentation results database
-					segDB.submitObjectsDocument(obj_2d.getMetadataDoc());
+					// segDB.submitObjectsDocument(obj_2d.getMetadataDoc());
+					obj_2d_documents.add(obj_2d.getMetadataDoc()); // add to the array
 				}
 				lineCnt++;
 			}
+			if (lineCnt>0) segDB.getObjectsCollection().insertMany(obj_2d_documents);
 			System.out.println("Lines processed: " + lineCnt);
 			br.close();
 		} catch (Exception e) {

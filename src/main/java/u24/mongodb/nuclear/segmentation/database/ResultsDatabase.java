@@ -95,6 +95,10 @@ public class ResultsDatabase {
     	return collProvenance;
     }
 
+	public MongoCollection<Document> getObjectsCollection() {
+        return collObjects;
+    }         
+
     public Document submitAnalysisExecutionMappingQuery(Document query) {
         return collMetadata.find(query).first();
     }
