@@ -1,11 +1,7 @@
 package u24.mongodb.nuclear.segmentation.model;
 
 import java.util.UUID;
-
 import org.bson.Document;
-
-import com.mongodb.BasicDBObject;
-
 import u24.mongodb.nuclear.segmentation.database.ResultsDatabase;
 
 /**
@@ -22,11 +18,11 @@ public class SimpleImageMetadata {
 	private double image_height;
 	private String cancer_type;
 
-	private BasicDBObject image_doc;
+	private Document image_doc;
 
 	public SimpleImageMetadata() {
 		String imageUUID = UUID.randomUUID().toString();
-		image_doc = new BasicDBObject();
+		image_doc = new Document();
 		image_doc.put("uuid", imageUUID);
 
 		this.identifier = null;
@@ -81,7 +77,7 @@ public class SimpleImageMetadata {
 		return 0;
 	}
 
-	public BasicDBObject getMetadataDoc() {
+	public Document getMetadataDoc() {
 		return image_doc;
 	}
 

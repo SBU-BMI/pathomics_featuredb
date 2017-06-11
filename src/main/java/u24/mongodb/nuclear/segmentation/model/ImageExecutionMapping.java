@@ -1,9 +1,7 @@
 package u24.mongodb.nuclear.segmentation.model;
 
 import u24.mongodb.nuclear.segmentation.database.ResultsDatabase;
-
 import org.bson.Document;
-
 import com.mongodb.client.FindIterable;
 
 /**

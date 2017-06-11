@@ -170,9 +170,9 @@ public class ProcessQuipCSVFile implements ProcessFile {
 	}
 	
 	private int setQuipMetadata(String lineMeta) {
-		quipMeta = (Document) JSON.parse(lineMeta);
+		quipMeta = Document.parse(lineMeta);
 		if (quipMeta==null) {
-			System.out.println("ERROR: Cannot parse the JSON document file: " + fileName);
+			System.err.println("ERROR: Cannot parse the JSON document file: " + fileName);
 			return 1;
 		}
 
@@ -226,6 +226,7 @@ public class ProcessQuipCSVFile implements ProcessFile {
 	 */
 	public void processFile() {
 		try {
+
 			// Read the json file for analysis metadata
 			Path pathMeta = Paths.get(fileName);
 			BufferedReader brMeta = Files.newBufferedReader(pathMeta, ENCODING);
@@ -255,7 +256,7 @@ public class ProcessQuipCSVFile implements ProcessFile {
 				imgMeta.setHeight(image_height);
 				imgMeta.setCancertype(cancer_type);
 			}
-		
+
 			if (mpp_x < 0 || mpp_y < 0) {
 				System.err.println("ERROR: Negative mpp values: (" + mpp_x + " " + mpp_y + "). Image: " + caseId);
 				return;

@@ -169,7 +169,7 @@ public class FeatureDBLoader {
                         check_done = 1;
                     }
                     thread_id = (thread_id + 1) % numThreads;
-                    Thread.sleep(500);
+                    if (check_done==0) Thread.sleep(5);
                 }
                 fi++;
             }
@@ -279,7 +279,7 @@ public class FeatureDBLoader {
             }
             thread_id = (thread_id + 1) % numThreads;
             try {
-                Thread.sleep(500);
+                Thread.sleep(5);
             } catch (java.lang.InterruptedException insomnia) {
                 insomnia.printStackTrace();
             }
