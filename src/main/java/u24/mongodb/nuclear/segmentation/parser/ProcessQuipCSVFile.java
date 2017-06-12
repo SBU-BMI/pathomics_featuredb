@@ -360,6 +360,7 @@ public class ProcessQuipCSVFile implements ProcessFile {
 
 					// load to segmentation results database
 					// segDB.submitObjectsDocument(obj_2d.getMetadataDoc());
+					
 					obj_2d_documents.add(obj_2d.getMetadataDoc()); // add to the array
 				}
 				lineCnt++;
