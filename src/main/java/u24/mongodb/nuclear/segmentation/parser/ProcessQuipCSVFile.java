@@ -277,21 +277,6 @@ public class ProcessQuipCSVFile implements ProcessFile {
 			String csvFilePath    = csvFilePathTmp.substring(0,csvFilePathTmp.lastIndexOf(File.separator));
 			String csvFile = csvFilePath + "/" + csvFilePrefix + "-features.csv";
 
-			// Check and register image to analysis mapping information
-			imgExecMap = new ImageExecutionMapping(execMeta, imgMeta, inputParams.colorVal, quipMeta);
-			if (!imgExecMap.checkExists(segDB)) {
-				segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
-			}
-
-			// Check and register additional analysis provenance data
-			Document provQuery = new Document();
-			provQuery.put("analysis_execution_id", execId);
-			Document qryResult = segDB.getProvenanceCollection().find(provQuery).first();
-			if (qryResult == null) {
-				quipMeta.put("analysis_execution_id", execId);
-				segDB.submitProvenanceDocument(quipMeta);
-			}
-
 			if (doNormalize==false) {
 				image_width  = 1.0;
 				image_height = 1.0;
@@ -309,7 +294,6 @@ public class ProcessQuipCSVFile implements ProcessFile {
 				System.err.println("Error in input file:" + fileName + ". Extra comma at the end.");
 				return;
 			}
-
 			
 			List<Document> obj_2d_documents = new ArrayList<Document>(); // initialize array
 
@@ -365,7 +349,25 @@ public class ProcessQuipCSVFile implements ProcessFile {
 				}
 				lineCnt++;
 			}
-			if (lineCnt>0) segDB.getObjectsCollection().insertMany(obj_2d_documents);
+			if (lineCnt>0) {
+				segDB.getObjectsCollection().insertMany(obj_2d_documents);
+
+				// Check and register image to analysis mapping information
+				imgExecMap = new ImageExecutionMapping(execMeta, imgMeta, inputParams.colorVal, quipMeta);
+				if (!imgExecMap.checkExists(segDB)) {
+					segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
+				}
+
+				// Check and register additional analysis provenance data
+				Document provQuery = new Document();
+				provQuery.put("analysis_execution_id", execId);
+				Document qryResult = segDB.getProvenanceCollection().find(provQuery).first();
+				if (qryResult == null) {
+					quipMeta.put("analysis_execution_id", execId);
+					segDB.submitProvenanceDocument(quipMeta);
+				}
+			}
+
 			System.out.println("Lines processed: " + lineCnt);
 			br.close();
 		} catch (Exception e) {

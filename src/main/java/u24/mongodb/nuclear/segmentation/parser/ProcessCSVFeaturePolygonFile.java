@@ -183,12 +183,6 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
         		return;
         	}
 
-            // Check and register image to analysis mapping information
-            imgExecMap = new ImageExecutionMapping(execMeta, imgMeta, inputParams.colorVal);
-            if (!imgExecMap.checkExists(segDB)) {
-                segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
-            }
-
             // Read input CSV file
             // Extract header information
             // Last position is Polygon
@@ -251,6 +245,14 @@ public class ProcessCSVFeaturePolygonFile implements ProcessFile {
                 }
                 lineCnt++;
             }
+			if (lineCnt>0) {
+   				// Check and register image to analysis mapping information
+            	imgExecMap = new ImageExecutionMapping(execMeta, imgMeta, inputParams.colorVal);
+            	if (!imgExecMap.checkExists(segDB)) {
+                	segDB.submitMetadataDocument(imgExecMap.getMetadataDoc());
+            	}
+			}
+
             System.out.println("Lines processed: " + lineCnt);
             br.close();
         } catch (Exception e) {
