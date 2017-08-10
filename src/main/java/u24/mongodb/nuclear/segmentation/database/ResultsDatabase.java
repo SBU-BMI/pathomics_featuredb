@@ -45,7 +45,7 @@ public class ResultsDatabase {
             MongoClientURI mongoURI = new MongoClientURI(dbURI);
             mongoClient = new MongoClient(mongoURI);
             resultsDatabase = mongoURI.getDatabase();
-            db = mongoClient.getDatabase(resultsDatabase).withWriteConcern(WriteConcern.UNACKNOWLEDGED);;	
+            db = mongoClient.getDatabase(resultsDatabase).withWriteConcern(WriteConcern.ACKNOWLEDGED);;	
         } catch (Exception e) {
             System.err.println(e.getClass().getName() + ": " + e.getMessage());
         }
@@ -62,7 +62,7 @@ public class ResultsDatabase {
             mongoClient = new MongoClient(dbHost, dbPort);
             if (resultDbName != null)
                 resultsDatabase = resultDbName;
-            db = mongoClient.getDatabase(resultsDatabase).withWriteConcern(WriteConcern.UNACKNOWLEDGED);;
+            db = mongoClient.getDatabase(resultsDatabase).withWriteConcern(WriteConcern.ACKNOWLEDGED);;
         } catch (Exception e) {
             System.err.println(e.getClass().getName() + ": " + e.getMessage());
         }
