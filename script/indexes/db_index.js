@@ -8,4 +8,6 @@ coll.createIndex({'provenance.analysis.execution_id' : 1, 'randval': 1}, {'name'
 coll.createIndex({'randval' : 1});
 var collimg = db.images;
 collimg.createIndex({'subject_id' : 1, 'case_id' : 1}, {unique: true});
+var collmeta = db.metadata;
+collmeta.createIndex({'image.case_id' : 1, 'provenance.analysis_execution_id' : 1, 'image.subject_id' : 1}, {unique: true});
 print('Completed index creation.');
