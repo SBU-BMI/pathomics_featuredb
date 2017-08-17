@@ -113,19 +113,28 @@ public class ResultsDatabase {
     }
 
     public ObjectId submitMetadataDocument(Document doc) {
-        doc.append("submit_date", new Date());
-        doc.append("randval", rand.nextFloat());
-        collMetadata.insertOne(doc);
+		try {
+        	doc.append("submit_date", new Date());
+        	doc.append("randval", rand.nextFloat());
+        	collMetadata.insertOne(doc);
+        	return (ObjectId) doc.get("_id");
+		} catch (Exception e) {
+			System.err.println("Metadata document exception.");
+		}
 
-        return (ObjectId) doc.get("_id");
+        return new ObjectId("507f1f77bcf86cd799439011");
     }
     
     public ObjectId submitProvenanceDocument(Document doc) {
-    	 doc.append("submit_date", new Date());
-         doc.append("randval", rand.nextFloat());
-         collProvenance.insertOne(doc);
+		try {
+    	 	doc.append("submit_date", new Date());
+         	doc.append("randval", rand.nextFloat());
+         	collProvenance.insertOne(doc);
+		} catch (Exception e) {
+			System.err.println("Provenance document exception.");
+		}
 
-         return (ObjectId) doc.get("_id");
+        return new ObjectId("507f1f77bcf86cd799439011");
     }
 
 }
