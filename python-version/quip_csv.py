@@ -3,6 +3,18 @@ import json
 import geojson
 import random
 import sys
+from multiprocessing import Pool
+import os
+import glob
+
+def get_file_list(folder):
+    metafiles = []
+    fnames = folder + "/*-algmeta.json"
+    i = 1
+    for name in glob.glob(fnames):
+        metafiles.append((folder,name,i))
+        i = i + 1
+    return metafiles
 
 def read_metadata(meta_file):
     mf = open(meta_file)
@@ -78,9 +90,16 @@ def set_metadata(gj_poly,bbox,mdata,batch_id,tag_id):
     gj_poly["randval"] = random.random()
     gj_poly["provenance"] = provenance_data(mdata,batch_id,tag_id)
 
-def process_file(mdata,fname):
+def process_quip(mfile):
+    # print(mfile[0],mfile[1])
+    mdata = read_metadata(mfile[1])
+    process_file(mdata,mfile[0],mfile[2])
+
+def process_file(mdata,fname,idx):
     image_width  = mdata["image_width"]
     image_height = mdata["image_height"]
+
+    fname = fname+"/"+mdata["out_file_prefix"]+"-features.csv"
 
     csvfile   = open(fname)
     csvreader = csv.reader(csvfile)
@@ -96,11 +115,12 @@ def process_file(mdata,fname):
        gj_poly = geojson.Feature(geometry=polyjson,properties=scfeatures)
        set_metadata(gj_poly,bbox,mdata,"b0","t0")
        cnt = cnt + 1
+    print("IDX: ", idx, " File: ",fname,"  Count: ",cnt)
 
 if __name__ == "__main__":
+   mfiles = get_file_list("test-data") 
    random.seed(a=None)
    csv.field_size_limit(sys.maxsize)
-   mfile = sys.argv[1]
-   cfile = sys.argv[2]
-   mdata = read_metadata(mfile)
-   process_file(mdata,cfile)
+   p = Pool(processes=2)
+   p.map(process_quip,mfiles,1)
+
