@@ -7,6 +7,7 @@ from   multiprocessing import Pool
 import os
 import glob
 import quipdb
+import quipargs
 
 def get_file_list(folder):
     metafiles = []
@@ -117,18 +118,23 @@ def process_file(mdata,fname,idx):
        multi_documents.append(gj_poly)
        cnt = cnt + 1
     print("IDX: ", idx, " File: ",fname,"  Count: ",cnt)
+
     if (cnt>0):
-       myclient = quipdb.connect("nfs004",27017)
-       mydb     = quipdb.getdb(myclient,"quiptest")
+       dbhost = quipargs.args["dbhost"]
+       dbport = quipargs.args["dbport"]
+       dbname = quipargs.args["dbname"]
+       myclient = quipdb.connect(dbhost,dbport)
+       mydb     = quipdb.getdb(myclient,dbname)
        quipdb.submit_results(mydb,multi_documents)
        res = quipdb.check_metadata(mydb,mdata) 
        if res is None:
           quipdb.submit_metadata(mydb,mdata)
 
 if __name__ == "__main__":
-   mfiles = get_file_list("test-data") 
+   quipargs.args = vars(quipargs.parser.parse_args())
    random.seed(a=None)
    csv.field_size_limit(sys.maxsize)
-   p = Pool(processes=20)
+   mfiles = get_file_list(quipargs.args["quip"]) 
+   p = Pool(processes=2)
    p.map(process_quip,mfiles,1)
 
