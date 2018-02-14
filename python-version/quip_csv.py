@@ -3,9 +3,10 @@ import json
 import geojson
 import random
 import sys
-from multiprocessing import Pool
+from   multiprocessing import Pool
 import os
 import glob
+import quipdb
 
 def get_file_list(folder):
     metafiles = []
@@ -25,10 +26,8 @@ def poly_geojson(polydata,imw,imh):
     polyarray = []
     x1 = float(polydata[0].split("[")[1])/float(imw)
     y1 = float(polydata[1])/float(imh)
-    minx = x1
-    miny = y1
-    maxx = x1
-    maxy = y1
+    minx = x1; miny = y1
+    maxx = x1; maxy = y1
     polyarray.append((x1,y1))
     i = 2
     while i < len(polydata)-2:
@@ -51,7 +50,7 @@ def poly_geojson(polydata,imw,imh):
     bbox = [minx,miny,maxx,maxy]
     return geojson.Polygon([polyarray]),bbox
 
-def scalar_features(row,headers,polycol):
+def set_scalar_features(row,headers,polycol):
     scalar_features = []
     nvarray = []
     scalar_values = {}
@@ -63,7 +62,7 @@ def scalar_features(row,headers,polycol):
     scalar_features.append(scalar_values)
     return scalar_features
 
-def provenance_data(mdata,batch_id,tag_id):
+def set_provenance_metadata(mdata,batch_id,tag_id):
     image = {}
     image["case_id"] = mdata["case_id"]
     image["subject_id"] = mdata["subject_id"]
@@ -80,7 +79,7 @@ def provenance_data(mdata,batch_id,tag_id):
     provenance["tag_id"]   = tag_id 
     return provenance
 
-def set_metadata(gj_poly,bbox,mdata,batch_id,tag_id):
+def set_document_metadata(gj_poly,bbox,mdata,batch_id,tag_id):
     gj_poly["parent_id"] = "self"
     gj_poly["normalized"] = "true"
     gj_poly["bbox"] = bbox
@@ -88,10 +87,9 @@ def set_metadata(gj_poly,bbox,mdata,batch_id,tag_id):
     gj_poly["y"] = (float(bbox[1])+float(bbox[3]))/2
     gj_poly["object_type"] = "nucleus"
     gj_poly["randval"] = random.random()
-    gj_poly["provenance"] = provenance_data(mdata,batch_id,tag_id)
+    gj_poly["provenance"] = set_provenance_metadata(mdata,batch_id,tag_id)
 
 def process_quip(mfile):
-    # print(mfile[0],mfile[1])
     mdata = read_metadata(mfile[1])
     process_file(mdata,mfile[0],mfile[2])
 
@@ -107,20 +105,30 @@ def process_file(mdata,fname,idx):
     polycol   = headers.index("Polygon") 
 
     cnt = 0
+    multi_documents = []
     for row in csvreader:
        polydata = row[polycol]
        polyjson,bbox = poly_geojson(polydata.split(":"),image_width,image_height)
        scfeatures = {}
-       scfeatures["scalar_features"] = scalar_features(row,headers,polycol)
+       scfeatures["scalar_features"] = set_scalar_features(row,headers,polycol)
        gj_poly = geojson.Feature(geometry=polyjson,properties=scfeatures)
-       set_metadata(gj_poly,bbox,mdata,"b0","t0")
+       gj_poly["footprint"] = float(row[headers.index("AreaInPixels")])
+       set_document_metadata(gj_poly,bbox,mdata,"b0","t0")
+       multi_documents.append(gj_poly)
        cnt = cnt + 1
     print("IDX: ", idx, " File: ",fname,"  Count: ",cnt)
+    if (cnt>0):
+       myclient = quipdb.connect("nfs004",27017)
+       mydb     = quipdb.getdb(myclient,"quiptest")
+       quipdb.submit_results(mydb,multi_documents)
+       res = quipdb.check_metadata(mydb,mdata) 
+       if res is None:
+          quipdb.submit_metadata(mydb,mdata)
 
 if __name__ == "__main__":
    mfiles = get_file_list("test-data") 
    random.seed(a=None)
    csv.field_size_limit(sys.maxsize)
-   p = Pool(processes=2)
+   p = Pool(processes=20)
    p.map(process_quip,mfiles,1)
 
