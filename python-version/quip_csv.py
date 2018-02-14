@@ -129,6 +129,7 @@ def process_file(mdata,fname,idx):
        res = quipdb.check_metadata(mydb,mdata) 
        if res is None:
           quipdb.submit_metadata(mydb,mdata)
+       myclient.close()
 
 if __name__ == "__main__":
    quipargs.args = vars(quipargs.parser.parse_args())
