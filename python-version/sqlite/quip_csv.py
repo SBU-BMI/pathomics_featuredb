@@ -6,10 +6,10 @@ import sys
 from   multiprocessing import Pool, Lock
 import os
 import glob
-import quipdb
 import quipargs
 import sqlite3
 import zlib
+import uuid
 
 conn = None;
 lock = Lock();
@@ -123,13 +123,13 @@ def process_file(mdata,fname,idx):
        set_document_metadata(gj_poly,bbox,mdata,"b0","t0")
        multi_documents.append(gj_poly)
        cnt = cnt + 1
-       gj_poly_zip = zlib.compress(str(gj_poly).encode("utf-8"),5); 
-       tdata = (int(gj_poly["footprint"]),gj_poly["randval"],int(gj_poly["x"]),int(gj_poly["y"]),gj_poly_zip);
-       tdata_array.append(tdata)
+       gj_poly_zip = zlib.compress(json.dumps(gj_poly).encode("utf-8"),5); 
+       # gj_poly_zip = zlib.compress(str(gj_poly).encode("utf-8"),5); 
+       tdata = (float(gj_poly["footprint"]),gj_poly["randval"],float(gj_poly["x"]),float(gj_poly["y"]),gj_poly_zip);
+       tdata_array.append(tdata);
        
-    # print("IDX: ", idx, " File: ",fname,"  Count: ",cnt)
-
     if (cnt>0):
+       print("IDX: ", idx, " File: ",fname,"  Count: ",cnt)
        lock.acquire();
        c = conn.cursor();
        sql = "INSERT INTO objects(area,rand,x,y,json_doc) VALUES(?,?,?,?,?)";
@@ -141,26 +141,35 @@ def process_file(mdata,fname,idx):
 def store_metadata(mfiles):
     mdata = read_metadata(mfiles[0][1]);
     c = conn.cursor();
-    sql = "INSERT INTO metadata(case_id,subject_id,analysis_id) VALUES(?,?,?)";
-    tdata = (mdata["case_id"],mdata["subject_id"],mdata["analysis_id"]);
+    sql = "INSERT INTO metadata(case_id,subject_id,analysis_id,width,height) VALUES(?,?,?,?,?)";
+    tdata = (mdata["case_id"],mdata["subject_id"],mdata["analysis_id"],mdata["image_width"],mdata["image_height"]);
     c.execute(sql,tdata);
     conn.commit();
     c.close();
 
+def create_tables(mfiles,conn):
+    c = conn.cursor();
+    c.execute("CREATE TABLE objects (area int, rand float, x float, y float, json_doc blob)");
+    c.execute("CREATE TABLE metadata (case_id text, subject_id text, analysis_id text, width int, height int)");
+    c.execute("CREATE INDEX area_x_y_rand ON objects (area,x,y,rand)");
+    conn.commit();
+    c.close();
+ 
 if __name__ == "__main__":
    quipargs.args = vars(quipargs.parser.parse_args())
    random.seed(a=None)
    csv.field_size_limit(sys.maxsize)
-   mfiles = get_file_list(quipargs.args["quip"]) 
 
-   conn = sqlite3.connect('example.db');
-   c = conn.cursor();
-   c.execute("CREATE TABLE objects (area int, rand float, x int, y int, json_doc blob)");
-   c.execute("CREATE TABLE metadata (case_id text, subject_id text, analysis_id text)");
-   conn.commit();
-   c.close();
+   qfolder = quipargs.args["quip"];
+   dbname  = quipargs.args["dbname"];
+   nprocs  = int(quipargs.args["nprocs"]);
+
+   mfiles = get_file_list(qfolder) 
+
+   conn = sqlite3.connect(dbname);
+   create_tables(mfiles,conn);
    store_metadata(mfiles);
 
-   p = Pool(processes=12)
+   p = Pool(processes=nprocs)
    p.map(process_quip,mfiles,1)
 
