@@ -84,7 +84,7 @@ def set_document_metadata(gj_poly,bbox,mdata,batch_id,tag_id):
     gj_poly["x"] = (float(bbox[0])+float(bbox[2]))/2
     gj_poly["y"] = (float(bbox[1])+float(bbox[3]))/2
     gj_poly["object_type"] = "nucleus"
-    gj_poly["randval"] = random.random()
+    gj_poly["randval"] = random.uniform(0.0,1.0)
     gj_poly["provenance"] = set_provenance_metadata(mdata,batch_id,tag_id)
 
 def process_quip(mfile):
@@ -208,7 +208,7 @@ def create_tables(mfiles,conn):
 
 def create_index(table_name,conn):
     c = conn.cursor();
-    sql = "CREATE INDEX xyar_"+str(table_name)+" ON "+str(table_name)+" (area,x,y,rand)";
+    sql = "CREATE INDEX axy_"+str(table_name)+" ON "+str(table_name)+" (area,x,y)";
     c.execute(sql);
     conn.commit();
  
