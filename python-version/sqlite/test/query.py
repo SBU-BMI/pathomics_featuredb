@@ -50,10 +50,11 @@ conn = sqlite3.connect("example.db");
 cnt = 0;
 c = conn.cursor();
 
-c.execute("select analysis_table from metadata");
+c.execute("select * from metadata");
 analysis_table = "";
 for row in c:
-    analysis_table = row[0];
+    print(row)
+    analysis_table = row[3];
 
 sql = "select * from " + analysis_table + " where rand > 0.6 limit 5000";
 
