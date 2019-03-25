@@ -3,7 +3,7 @@ import zlib
 import json
 import sys
 import geojson
-from shapely import geometry, wkt 
+from shapely import geometry, wkt, wkb
 
 def set_scalar_features(row,headers):
     scalar_features = []
@@ -50,14 +50,22 @@ conn = sqlite3.connect("example.db");
 cnt = 0;
 c = conn.cursor();
 
-c.execute("select * from objects where rand > 0.8 limit 1");
+c.execute("select * from metadata");
+analysis_table = "";
+for row in c:
+    print(row)
+    analysis_table = row[3];
+
+sql = "select * from " + analysis_table + " where rand > 0.6 limit 5000";
+
+c.execute(sql);
 
 headers = [description[0] for description in c.description]
 h_len = len(c.description);
 
 for row in c:
     cnt = cnt + 1
-    p_poly = wkt.loads(zlib.decompress(row[h_len-1]).decode("utf-8"))
+    p_poly = wkb.loads(zlib.decompress(row[h_len-1]))
     polyarray = list(p_poly.exterior.coords);
     polyjson  = geojson.Polygon([polyarray]);
     scfeatures = {}
@@ -65,6 +73,5 @@ for row in c:
     gj_poly = geojson.Feature(geometry=polyjson,properties=scfeatures)
     gj_poly["footprint"] = float(row[0]); 
     set_document_metadata(gj_poly,row[1],row[2],row[3]);
-    print(gj_poly);
 
 print(cnt)

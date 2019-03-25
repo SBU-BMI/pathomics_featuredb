@@ -3,8 +3,8 @@ import os
 import sys
 import subprocess  
 import shutil
-from uuid   import uuid4
-from flask  import Flask, request, jsonify, send_file
+from uuid import uuid4
+from flask import Flask, request, jsonify, send_file
 import sqlite3
 import zlib
 import geojson
@@ -81,6 +81,41 @@ def compose_result_set(c,qtype,caseid,subjectid,analysisid):
 
 # set up the application
 app = Flask(__name__)
+
+@app.route('/analysis/<subjectid>/<caseid>/<analysisid>',methods=['GET'])
+def get_analysis_table_info(subjectid,caseid,analysisid):
+    conn_d = sqlite3.connect("../databases/quip_directory.mdb");
+    c = conn_d.cursor();
+    sql  = "select analysis_table,db_file from quip_directory where ";
+    sql  = sql + " case_id = '" + caseid + "'";
+    sql  = sql + " and subject_id = '" + subjectid + "'";
+    sql  = sql + " and analysis_id = '" + analysisid + "'";
+
+    c.execute(sql);
+    analysis_table = "";
+    dbfile = ""
+    for row in c:
+        analysis_table = row[0];
+        dbfile = row[1];
+
+    print("I AM NOW HERE.",analysis_table,dbfile);
+
+    c.close();
+    conn_d.close();
+
+    sql = "select info from table_info where name = '" + analysis_table + "'  limit 1";
+    print(sql);
+    conn_i = sqlite3.connect(dbfile);
+    c = conn_i.cursor();
+    c.execute(sql);
+    row = c.fetchone();
+    table_info = row[0];
+
+    print("TABLE info:",table_info);
+
+    c.close();
+    conn_i.close();
+    return jsonify(table_info);
 
 @app.route('/sql/<subjectid>/<caseid>/<analysisid>/<qtype>',methods=['GET'])
 def get_sql_list(subjectid,caseid,analysisid,qtype):

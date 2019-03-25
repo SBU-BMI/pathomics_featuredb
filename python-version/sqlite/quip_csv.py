@@ -55,6 +55,37 @@ def store_metadata(mfile,mdata,analysis_table,op_type,result_type):
     conn.commit();
     c.close();
 
+def create_info_table(conn):
+    c = conn.cursor();
+    sql = "CREATE TABLE IF NOT EXISTS table_info (name text, info text)";
+    c.execute(sql);
+    conn.commit();
+    c.close();
+
+def store_info(mfile,mdata,analysis_table,conn):
+    fname = mfile[0]+"/"+mdata["out_file_prefix"]+"-features.csv";
+    csvfile   = open(fname);
+    csvreader = csv.reader(csvfile);
+    headers   = next(csvreader);
+    tab_info = {"x": "float", "y": "float", "minx": "float", 
+                "miny": "float", "maxx": "float", "maxy": "float", 
+                "rand": "float", "area": "int"};
+    polycol   = headers.index("Polygon");
+    farray = [];
+    for i in range(1,polycol):
+        if headers[i] not in farray:
+           tab_info[headers[i]] = "float";
+           farray.append(headers[i]);
+    tab_info["polygon"] = "blob";
+    csvfile.close(); 
+
+    c = conn.cursor();
+    sql = "INSERT INTO table_info(name,info) VALUES(?,?)";
+    tdata = (str(analysis_table),str(tab_info));
+    c.execute(sql,tdata);
+    conn.commit();
+    c.close();
+
 def create_analysis_table(mfile,mdata,conn):
     # check if analysis table exists
     sql = "SELECT analysis_table from metadata where ";
@@ -83,7 +114,7 @@ def create_analysis_table(mfile,mdata,conn):
         if headers[i] not in farray:
            sql = sql + "," + headers[i] + " float";
            farray.append(headers[i]);
-    sql = sql + ", json_doc blob)";
+    sql = sql + ", polygon blob)";
     csvfile.close();
     c.execute(sql);
     conn.commit();
@@ -92,6 +123,7 @@ def create_analysis_table(mfile,mdata,conn):
 
 def create_tables(mfile,mdata,conn):
     create_metadata_table(mfile,mdata,conn);
+    create_info_table(conn);
     table_name,table_exists = create_analysis_table(mfile,mdata,conn);
     return table_name,table_exists;
 
@@ -142,7 +174,7 @@ def get_insertion_sql(headers,polycol,analysis_table):
            sql1 = sql1 + "," + headers[i];
            sql2 = sql2 + ",?";
            farray.append(headers[i]);
-    sql1 = sql1 + ",json_doc)";
+    sql1 = sql1 + ",polygon)";
     sql2 = sql2 + ",?)";
     return sql1 + sql2;
 
@@ -211,6 +243,7 @@ if __name__ == "__main__":
    analysis_table,table_exists = create_tables(mfiles[0],mdata,conn);
    if table_exists==False:
       store_metadata(mfiles[0],mdata,analysis_table,rtype[0],rtype[1]);
+      store_info(mfiles[0],mdata,analysis_table,conn);
    conn.commit();
    conn.close();
 

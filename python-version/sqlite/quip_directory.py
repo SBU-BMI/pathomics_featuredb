@@ -1,4 +1,5 @@
 import sys
+import os
 import glob
 import sqlite3
 import argparse
@@ -6,6 +7,7 @@ import argparse
 parser = argparse.ArgumentParser(description="QuIP sqlite3 database directory.")
 parser.add_argument("--dbname",required=True,type=str,metavar="<database name>",help="Name of the sqlite3 directory.")
 parser.add_argument("--dbroot",required=True,type=str,metavar="<database name>",help="Root folder.")
+parser.add_argument("--overwrite",required=False,action="store_true",help="Overwrite existing directory database.")
 
 def get_file_list(folder):
     metafiles = []
@@ -53,6 +55,15 @@ def create_index(table_name,conn):
     conn.commit();
     c.close();
 
+def drop_table_index(dbout):
+    conn = sqlite3.connect(dbout);
+    c = conn.cursor();
+    c.execute("DROP TABLE IF EXISTS quip_directory");
+    c.execute("DROP INDEX IF EXISTS sca_quip_directory");
+    c.close();
+    conn.commit();
+    conn.close();
+
 if __name__ == "__main__":
    quip_args = {};
    quip_args = vars(parser.parse_args());
@@ -60,6 +71,13 @@ if __name__ == "__main__":
    dbname = quip_args["dbname"];
 
    dbout = dbroot + "/" + dbname;
+   if os.path.isfile(dbout)==True and quip_args["overwrite"]==None:
+      print("ERROR: directory file:",dbout,"exists!");
+      sys.exit(1);
+   if os.path.isfile(dbout)==True and quip_args["overwrite"]:
+      print("Directory file exists. Deleting table and index.");
+      drop_table_index(dbout);
+
    dbfiles = get_file_list(dbroot);
    create_directory(dbfiles,dbout);
 
