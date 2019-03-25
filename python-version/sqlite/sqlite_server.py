@@ -89,19 +89,22 @@ def get_sql_list(subjectid,caseid,analysisid,qtype):
     l_val = request.args.get('limit');
     s_val = request.args.get('skip');
 
-    print(a_flt)
-
-    conn = sqlite3.connect("example.db");
-    c = conn.cursor();
-    sql  = "select analysis_table from metadata where ";
+    conn_d = sqlite3.connect("../databases/quip_directory.mdb");
+    c = conn_d.cursor();
+    sql  = "select analysis_table,db_file from quip_directory where ";
     sql  = sql + " case_id = '" + caseid + "'";
     sql  = sql + " and subject_id = '" + subjectid + "'";
     sql  = sql + " and analysis_id = '" + analysisid + "'";
 
     c.execute(sql);
     analysis_table = "";
+    dbfile = ""
     for row in c:
         analysis_table = row[0];
+        dbfile = row[1];
+
+    c.close();
+    conn_d.close();
 
     sql = "";
     if qtype=="select": 
@@ -121,11 +124,12 @@ def get_sql_list(subjectid,caseid,analysisid,qtype):
        else:
           sql = sql + " limit " + str(l_val);
     print(sql);
-    c = conn.cursor();
+    conn_i = sqlite3.connect(dbfile);
+    c = conn_i.cursor();
     c.execute(sql);
     result_set = compose_result_set(c,qtype,caseid,subjectid,analysisid);
     c.close();
-    conn.close();
+    conn_i.close();
 
     return jsonify(result_set)
 
@@ -138,17 +142,22 @@ def get_query_list(subjectid,caseid,analysisid,qtype):
     l_val = request.args.get('limit');
     s_val = request.args.get('skip');
 
-    conn = sqlite3.connect("example.db");
-    c = conn.cursor();
-    sql  = "select analysis_table from metadata where ";
+    conn_d = sqlite3.connect("../databases/quip_directory.mdb");
+    c = conn_d.cursor();
+    sql  = "select analysis_table,db_file from quip_directory where ";
     sql  = sql + " case_id = '" + caseid + "'";
     sql  = sql + " and subject_id = '" + subjectid + "'";
     sql  = sql + " and analysis_id = '" + analysisid + "'";
 
     c.execute(sql);
     analysis_table = "";
+    dbfile = ""
     for row in c:
         analysis_table = row[0];
+        dbfile = row[1];
+
+    c.close();
+    conn_d.close();
 
     sql = "";
     if qtype=="select": 
@@ -192,11 +201,12 @@ def get_query_list(subjectid,caseid,analysisid,qtype):
        else:
           sql = sql + " limit " + str(l_val);
     print(sql);
-    c = conn.cursor();
+    conn_i = sqlite3.connect(dbfile);
+    c = conn_i.cursor();
     c.execute(sql);
     result_set = compose_result_set(c,qtype,caseid,subjectid,analysisid);
     c.close();
-    conn.close();
+    conn_i.close();
 
     return jsonify(result_set)
 

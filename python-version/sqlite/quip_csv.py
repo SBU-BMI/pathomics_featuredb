@@ -1,25 +1,29 @@
 import csv
 import json
-import geojson
 import random
 import sys
 from   multiprocessing import Pool, Lock
-import os
 import glob
-import quipargs
 import sqlite3
 import zlib
 import uuid
+from shapely import geometry, wkb, wkt
+import argparse
 
-conn = None;
-lock = Lock();
+# Command line arguments
+parser = argparse.ArgumentParser(description="QuIP results loader.")
+parser.add_argument("--nprocs",required=True,type=int,metavar="<num of processes>",help="Number of concurrent processes to create db.")
+parser.add_argument("--dbname",required=True,type=str,metavar="<database name>",help="The name of the sqlite3 database.")
+parser.add_argument("--quip",required=True,type=str,metavar="<folder>",help="QuIP results folder name.")
+parser.add_argument("--rtype",required=True,type=str,metavar="<operation,type>",help="Type of analysis: <segmentation,nucleus>, <heatmap,til>")
 
+# Input files
 def get_file_list(folder):
     metafiles = []
     fnames = folder + "/*-algmeta.json"
     i = 1
     for name in glob.glob(fnames):
-        metafiles.append((folder,name,i))
+        metafiles.append((folder,name,i,""))
         i = i + 1
     return metafiles
 
@@ -28,78 +32,121 @@ def read_metadata(meta_file):
     data = json.load(mf)
     return data
 
-def poly_geojson(polydata,imw,imh):
-    polyarray = []
-    x1 = float(polydata[0].split("[")[1])/float(imw)
-    y1 = float(polydata[1])/float(imh)
-    minx = x1; miny = y1
-    maxx = x1; maxy = y1
-    polyarray.append((x1,y1))
-    i = 2
-    while i < len(polydata)-2:
-        x = float(polydata[i])/float(imw)
-        y = float(polydata[i+1])/float(imh)
-        if minx>x: minx = x
-        if miny>y: miny = y
-        if maxx<x: maxx = x
-        if maxy<y: maxy = y
-        polyarray.append((x,y))
-        i = i + 2
-    x = float(polydata[i])/float(imw)
-    y = float(polydata[i+1].split("]")[0])/float(imh)
-    if minx>x: minx = x
-    if miny>y: miny = y
-    if maxx<x: maxx = x
-    if maxy<y: maxy = y
-    polyarray.append((x,y))
-    polyarray.append((x1,y1))
-    bbox = [minx,miny,maxx,maxy]
-    return geojson.Polygon([polyarray]),bbox
+# Database setup
+conn  = None;
+dbmae = "";
+
+def create_metadata_table(mfile,mdata,conn):
+    c = conn.cursor();
+    sql = "CREATE TABLE IF NOT EXISTS metadata ";
+    sql = sql + "(case_id text, subject_id text, analysis_id text, op_type text, result_type text, ";
+    sql = sql + "analysis_table text, width int, height int, mpp float)"
+    c.execute(sql);
+    conn.commit();
+    c.close();
+
+def store_metadata(mfile,mdata,analysis_table,op_type,result_type):
+    c = conn.cursor();
+    sql = "INSERT INTO metadata(case_id,subject_id,analysis_id,op_type,result_type, " 
+    sql = sql + "analysis_table,width,height,mpp) VALUES(?,?,?,?,?,?,?,?,?)";
+    tdata = (mdata["case_id"],mdata["subject_id"],mdata["analysis_id"],op_type,result_type,
+             analysis_table,mdata["image_width"],mdata["image_height"],mdata["mpp"]);
+    c.execute(sql,tdata);
+    conn.commit();
+    c.close();
+
+def create_analysis_table(mfile,mdata,conn):
+    # check if analysis table exists
+    sql = "SELECT analysis_table from metadata where ";
+    sql = sql + "case_id = '" + str(mdata["case_id"]) + "'";
+    sql = sql + " and ";
+    sql = sql + "subject_id = '" + str(mdata["subject_id"]) + "'";
+    sql = sql + " and ";
+    sql = sql + "analysis_id = '" + str(mdata["analysis_id"]) + "'";
+    c = conn.cursor();
+    c.execute(sql);
+    row = c.fetchone();
+    if row!=None:
+       return row[0],True;
+
+    analysis_table = "objects_"+str(uuid.uuid1().hex);
+
+    fname = mfile[0]+"/"+mdata["out_file_prefix"]+"-features.csv";
+    csvfile   = open(fname);
+    csvreader = csv.reader(csvfile);
+    headers   = next(csvreader);
+    polycol   = headers.index("Polygon");
+    sql = "CREATE TABLE " + analysis_table;
+    sql = sql + " (x float, y float, minx float, miny float, maxx float, maxy float, rand float, area int"; 
+    farray = [];
+    for i in range(1,polycol):
+        if headers[i] not in farray:
+           sql = sql + "," + headers[i] + " float";
+           farray.append(headers[i]);
+    sql = sql + ", json_doc blob)";
+    csvfile.close();
+    c.execute(sql);
+    conn.commit();
+    c.close();
+    return analysis_table,False;
+
+def create_tables(mfile,mdata,conn):
+    create_metadata_table(mfile,mdata,conn);
+    table_name,table_exists = create_analysis_table(mfile,mdata,conn);
+    return table_name,table_exists;
+
+def create_index(table_name,conn):
+    c = conn.cursor();
+    sql = "CREATE INDEX axy_"+str(table_name)+" ON "+str(table_name)+" (area,x,y)";
+    c.execute(sql);
+    conn.commit();
+    c.close();
+
+# Process analysis results files
+lock = Lock();
+
+def get_polygon(polydata,imw,imh):
+    p_len   = len(polydata);
+    p_first = polydata[0].split("[")[1];
+    p_last  = polydata[p_len-1].split("]")[0];
+    polydata[0] = p_first;
+    polydata[p_len-1] = p_last;
+
+    s_poly = geometry.Polygon([[float(polydata[i]),float(polydata[i+1])] for i in range(0,p_len,2)]);
+    s_poly = s_poly.simplify(1.0,preserve_topology=True);
+    s_area = int(s_poly.area);
+
+    p_poly = [];
+    for p in list(s_poly.exterior.coords):
+        x = p[0]/float(imw);
+        y = p[1]/float(imh);
+        p_poly.append((x,y));
+    s_poly = geometry.Polygon(p_poly);
+    return wkb.dumps(s_poly),s_area,s_poly.bounds;
 
 def set_scalar_features(row,headers,polycol):
-    scalar_features = []
-    nvarray = []
-    scalar_values = {}
-    for i in range(polycol):
-       nv = { "name" : headers[i], "value" : float(row[i]) }
-       nvarray.append(nv)
-    scalar_values["ns"] = "http://u24.bmi.stonybrook.edu/v1"
-    scalar_values["nv"] = nvarray
-    scalar_features.append(scalar_values)
-    return scalar_features
+    farray = [];
+    varray = [];
+    for i in range(1,polycol):
+        if headers[i] not in farray:
+           varray.append(float(row[i]));
+           farray.append(headers[i]);
+    return varray
 
-def set_provenance_metadata(mdata,batch_id,tag_id):
-    image = {}
-    image["case_id"] = mdata["case_id"]
-    image["subject_id"] = mdata["subject_id"]
-    analysis = {}
-    analysis["execution_id"] = mdata["analysis_id"]
-    analysis["study_id"] = ""
-    analysis["source"] = "computer"
-    analysis["computation"] = "segmentation"
-    provenance = {}
-    provenance["image"] = image
-    provenance["analysis"] = analysis
-    provenance["data_loader"] = "1.4"
-    provenance["batch_id"] = batch_id 
-    provenance["tag_id"]   = tag_id 
-    return provenance
+def get_insertion_sql(headers,polycol,analysis_table):
+    sql1 = "INSERT INTO "+analysis_table+" (x,y,minx,miny,maxx,maxy,rand,area"; 
+    sql2 = " VALUES(?,?,?,?,?,?,?,?"; 
+    farray = [];
+    for i in range(1,polycol):
+        if headers[i] not in farray:
+           sql1 = sql1 + "," + headers[i];
+           sql2 = sql2 + ",?";
+           farray.append(headers[i]);
+    sql1 = sql1 + ",json_doc)";
+    sql2 = sql2 + ",?)";
+    return sql1 + sql2;
 
-def set_document_metadata(gj_poly,bbox,mdata,batch_id,tag_id):
-    gj_poly["parent_id"] = "self"
-    gj_poly["normalized"] = "true"
-    gj_poly["bbox"] = bbox
-    gj_poly["x"] = (float(bbox[0])+float(bbox[2]))/2
-    gj_poly["y"] = (float(bbox[1])+float(bbox[3]))/2
-    gj_poly["object_type"] = "nucleus"
-    gj_poly["randval"] = random.random()
-    gj_poly["provenance"] = set_provenance_metadata(mdata,batch_id,tag_id)
-
-def process_quip(mfile):
-    mdata = read_metadata(mfile[1])
-    process_file(mdata,mfile[0],mfile[2])
-
-def process_file(mdata,fname,idx):
+def process_file(mdata,fname,idx,analysis_table):
     image_width  = mdata["image_width"]
     image_height = mdata["image_height"]
 
@@ -110,66 +157,73 @@ def process_file(mdata,fname,idx):
     headers   = next(csvreader) 
     polycol   = headers.index("Polygon") 
 
+    sql = get_insertion_sql(headers,polycol,analysis_table);
+
     cnt = 0
-    multi_documents = []
     tdata_array = [];
     for row in csvreader:
-       polydata = row[polycol]
-       polyjson,bbox = poly_geojson(polydata.split(":"),image_width,image_height)
-       scfeatures = {}
-       scfeatures["scalar_features"] = set_scalar_features(row,headers,polycol)
-       gj_poly = geojson.Feature(geometry=polyjson,properties=scfeatures)
-       gj_poly["footprint"] = float(row[headers.index("AreaInPixels")])
-       set_document_metadata(gj_poly,bbox,mdata,"b0","t0")
-       multi_documents.append(gj_poly)
+       polyarray,p_area,bbox = get_polygon(row[polycol].split(":"),image_width,image_height)
+       x = (float(bbox[0])+float(bbox[2]))/2
+       y = (float(bbox[1])+float(bbox[3]))/2
+       varray = set_scalar_features(row,headers,polycol)
        cnt = cnt + 1
-       gj_poly_zip = zlib.compress(json.dumps(gj_poly).encode("utf-8"),5); 
-       # gj_poly_zip = zlib.compress(str(gj_poly).encode("utf-8"),5); 
-       tdata = (float(gj_poly["footprint"]),gj_poly["randval"],float(gj_poly["x"]),float(gj_poly["y"]),gj_poly_zip);
+       gj_poly_zip = zlib.compress(polyarray,9); 
+       tdata = (x,y,float(bbox[0]),float(bbox[1]),float(bbox[2]),float(bbox[3]),random.random(),p_area);
+       for fv in varray:
+           tdata = tdata + (fv,);
+       tdata = tdata + (gj_poly_zip,);
        tdata_array.append(tdata);
        
     if (cnt>0):
-       print("IDX: ", idx, " File: ",fname,"  Count: ",cnt)
        lock.acquire();
-       c = conn.cursor();
-       sql = "INSERT INTO objects(area,rand,x,y,json_doc) VALUES(?,?,?,?,?)";
+       print("IDX: ", idx, " File: ",fname,"  Count: ",cnt)
+       conn_l = sqlite3.connect(dbname);
+       c = conn_l.cursor();
        c.executemany(sql,tdata_array);
-       conn.commit();
+       conn_l.commit();
        c.close();
+       conn_l.close();
        lock.release();
 
-def store_metadata(mfiles):
-    mdata = read_metadata(mfiles[0][1]);
-    c = conn.cursor();
-    sql = "INSERT INTO metadata(case_id,subject_id,analysis_id,width,height) VALUES(?,?,?,?,?)";
-    tdata = (mdata["case_id"],mdata["subject_id"],mdata["analysis_id"],mdata["image_width"],mdata["image_height"]);
-    c.execute(sql,tdata);
-    conn.commit();
-    c.close();
-
-def create_tables(mfiles,conn):
-    c = conn.cursor();
-    c.execute("CREATE TABLE objects (area int, rand float, x float, y float, json_doc blob)");
-    c.execute("CREATE TABLE metadata (case_id text, subject_id text, analysis_id text, width int, height int)");
-    c.execute("CREATE INDEX area_x_y_rand ON objects (area,x,y,rand)");
-    conn.commit();
-    c.close();
+def process_quip(mfile):
+    mdata = read_metadata(mfile[1])
+    process_file(mdata,mfile[0],mfile[2],mfile[3])
  
 if __name__ == "__main__":
-   quipargs.args = vars(quipargs.parser.parse_args())
-   random.seed(a=None)
-   csv.field_size_limit(sys.maxsize)
+   random.seed(a=None);
+   csv.field_size_limit(sys.maxsize);
 
-   qfolder = quipargs.args["quip"];
-   dbname  = quipargs.args["dbname"];
-   nprocs  = int(quipargs.args["nprocs"]);
+   quip_args = {};
+   quip_args = vars(parser.parse_args());
+   qfolder = quip_args["quip"];
+   dbname  = quip_args["dbname"];
+   nprocs  = int(quip_args["nprocs"]);
+   rtype   = quip_args["rtype"].split(',');
 
-   mfiles = get_file_list(qfolder) 
+   if len(rtype)!=2:
+      print("Error: result type (rtype) parameter is not correct: ",rtype);
+      sys.exit(1);
+
+   mfiles = get_file_list(qfolder);
+   mdata  = read_metadata(mfiles[0][1]);
 
    conn = sqlite3.connect(dbname);
-   create_tables(mfiles,conn);
-   store_metadata(mfiles);
+   analysis_table,table_exists = create_tables(mfiles[0],mdata,conn);
+   if table_exists==False:
+      store_metadata(mfiles[0],mdata,analysis_table,rtype[0],rtype[1]);
+   conn.commit();
+   conn.close();
 
+   meta_files = [];
+   for i in range(len(mfiles)):
+       meta_files.append((mfiles[i][0],mfiles[i][1],mfiles[i][2],analysis_table));
    p = Pool(processes=nprocs)
-   p.map(process_quip,mfiles,1)
+   p.map(process_quip,meta_files,1)
+
+   conn = sqlite3.connect(dbname);
+   create_index(analysis_table,conn);
+   conn.commit();
+   conn.close();
+
+   sys.exit(0);
 
