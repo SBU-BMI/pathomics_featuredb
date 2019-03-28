@@ -82,7 +82,37 @@ def compose_result_set(c,qtype,caseid,subjectid,analysisid):
 # set up the application
 app = Flask(__name__)
 
-@app.route('/analysis/<subjectid>/<caseid>/<analysisid>',methods=['GET'])
+@app.route('/analysis/list',methods=['GET'])
+def get_analysis_info():
+    subject_id  = request.args.get("subject_id");
+    case_id     = request.args.get("case_id");
+    analysis_id = request.args.get("analysis_id");
+
+    conn_d = sqlite3.connect("../databases/quip_directory.mdb");
+    c = conn_d.cursor();
+    sql  = "select subject_id,case_id,analysis_id from quip_directory where (1=1) ";
+
+    if subject_id!=None: 
+       sql = sql + " and subject_id = '" + subject_id + "'";
+    if case_id!=None: 
+       sql = sql + " and case_id = '" + case_id + "'";
+    if analysis_id!=None:
+       sql = sql + " and analysis_id = '" + analysis_id + "'";
+    
+    c.execute(sql);
+    analysis_info = [];
+    for row in c:
+        a_info = {};
+        a_info["subject_id"]  = row[0];
+        a_info["case_id"]     = row[1];
+        a_info["analysis_id"] = row[2]; 
+        analysis_info.append(a_info);
+    c.close();
+    conn_d.close();
+
+    return jsonify(analysis_info);
+
+@app.route('/analysis/schema/<subjectid>/<caseid>/<analysisid>',methods=['GET'])
 def get_analysis_table_info(subjectid,caseid,analysisid):
     conn_d = sqlite3.connect("../databases/quip_directory.mdb");
     c = conn_d.cursor();
@@ -97,9 +127,6 @@ def get_analysis_table_info(subjectid,caseid,analysisid):
     for row in c:
         analysis_table = row[0];
         dbfile = row[1];
-
-    print("I AM NOW HERE.",analysis_table,dbfile);
-
     c.close();
     conn_d.close();
 
@@ -117,7 +144,7 @@ def get_analysis_table_info(subjectid,caseid,analysisid):
     conn_i.close();
     return jsonify(table_info);
 
-@app.route('/sql/<subjectid>/<caseid>/<analysisid>/<qtype>',methods=['GET'])
+@app.route('/analysis/sql/<subjectid>/<caseid>/<analysisid>/<qtype>',methods=['GET'])
 def get_sql_list(subjectid,caseid,analysisid,qtype):
     a_flt = request.args.get('filter');
     r_val = request.args.get('rand');
@@ -134,9 +161,9 @@ def get_sql_list(subjectid,caseid,analysisid,qtype):
     c.execute(sql);
     analysis_table = "";
     dbfile = ""
-    for row in c:
-        analysis_table = row[0];
-        dbfile = row[1];
+    row = c.fetchone();
+    analysis_table = row[0];
+    dbfile = row[1];
 
     c.close();
     conn_d.close();
@@ -168,7 +195,7 @@ def get_sql_list(subjectid,caseid,analysisid,qtype):
 
     return jsonify(result_set)
 
-@app.route('/query/<subjectid>/<caseid>/<analysisid>/<qtype>',methods=['GET'])
+@app.route('/analysis/query/<subjectid>/<caseid>/<analysisid>/<qtype>',methods=['GET'])
 def get_query_list(subjectid,caseid,analysisid,qtype):
     a_val = request.args.get('area');
     x_val = request.args.get('x');

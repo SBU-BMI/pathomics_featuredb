@@ -17,25 +17,31 @@ parser.add_argument("--dbname",required=True,type=str,metavar="<database name>",
 parser.add_argument("--quip",required=True,type=str,metavar="<folder>",help="QuIP results folder name.")
 parser.add_argument("--rtype",required=True,type=str,metavar="<operation,type>",help="Type of analysis: <segmentation,nucleus>, <heatmap,til>")
 
+def get_arguments():
+    quip_args = vars(parser.parse_args());
+    qfolder = quip_args["quip"];
+    dbname  = quip_args["dbname"];
+    nprocs  = int(quip_args["nprocs"]);
+    rtype   = quip_args["rtype"].split(',');
+    return qfolder,dbname,nprocs,rtype
+
 # Input files
 def get_file_list(folder):
     metafiles = []
     fnames = folder + "/*-algmeta.json"
     i = 1
-    for name in glob.glob(fnames):
-        metafiles.append((folder,name,i,""))
+    for name in glob.glob(fnames,recursive=True):
+        metafiles.append((folder,name,i))
         i = i + 1
     return metafiles
 
 def read_metadata(meta_file):
     mf = open(meta_file)
     data = json.load(mf)
+    mf.close()
     return data
 
 # Database setup
-conn  = None;
-dbmae = "";
-
 def create_metadata_table(mfile,mdata,conn):
     c = conn.cursor();
     sql = "CREATE TABLE IF NOT EXISTS metadata ";
@@ -45,7 +51,7 @@ def create_metadata_table(mfile,mdata,conn):
     conn.commit();
     c.close();
 
-def store_metadata(mfile,mdata,analysis_table,op_type,result_type):
+def store_metadata(mfile,mdata,conn,analysis_table,op_type,result_type):
     c = conn.cursor();
     sql = "INSERT INTO metadata(case_id,subject_id,analysis_id,op_type,result_type, " 
     sql = sql + "analysis_table,width,height,mpp) VALUES(?,?,?,?,?,?,?,?,?)";
@@ -62,7 +68,7 @@ def create_info_table(conn):
     conn.commit();
     c.close();
 
-def store_info(mfile,mdata,analysis_table,conn):
+def store_info(mfile,mdata,conn,analysis_table):
     fname = mfile[0]+"/"+mdata["out_file_prefix"]+"-features.csv";
     csvfile   = open(fname);
     csvreader = csv.reader(csvfile);
@@ -178,7 +184,7 @@ def get_insertion_sql(headers,polycol,analysis_table):
     sql2 = sql2 + ",?)";
     return sql1 + sql2;
 
-def process_file(mdata,fname,idx,analysis_table):
+def process_file(mdata,fname,idx,dbname,analysis_table):
     image_width  = mdata["image_width"]
     image_height = mdata["image_height"]
 
@@ -209,29 +215,23 @@ def process_file(mdata,fname,idx,analysis_table):
     if (cnt>0):
        lock.acquire();
        print("IDX: ", idx, " File: ",fname,"  Count: ",cnt)
-       conn_l = sqlite3.connect(dbname);
-       c = conn_l.cursor();
+       conn = sqlite3.connect(dbname);
+       c = conn.cursor();
        c.executemany(sql,tdata_array);
-       conn_l.commit();
+       conn.commit();
        c.close();
-       conn_l.close();
+       conn.close();
        lock.release();
 
 def process_quip(mfile):
     mdata = read_metadata(mfile[1])
-    process_file(mdata,mfile[0],mfile[2],mfile[3])
+    process_file(mdata,mfile[0],mfile[2],mfile[3],mfile[4])
  
 if __name__ == "__main__":
    random.seed(a=None);
    csv.field_size_limit(sys.maxsize);
 
-   quip_args = {};
-   quip_args = vars(parser.parse_args());
-   qfolder = quip_args["quip"];
-   dbname  = quip_args["dbname"];
-   nprocs  = int(quip_args["nprocs"]);
-   rtype   = quip_args["rtype"].split(',');
-
+   qfolder,dbname,nprocs,rtype = get_arguments();
    if len(rtype)!=2:
       print("Error: result type (rtype) parameter is not correct: ",rtype);
       sys.exit(1);
@@ -242,14 +242,14 @@ if __name__ == "__main__":
    conn = sqlite3.connect(dbname);
    analysis_table,table_exists = create_tables(mfiles[0],mdata,conn);
    if table_exists==False:
-      store_metadata(mfiles[0],mdata,analysis_table,rtype[0],rtype[1]);
-      store_info(mfiles[0],mdata,analysis_table,conn);
+      store_metadata(mfiles[0],mdata,conn,analysis_table,rtype[0],rtype[1]);
+      store_info(mfiles[0],mdata,conn,analysis_table);
    conn.commit();
    conn.close();
 
    meta_files = [];
    for i in range(len(mfiles)):
-       meta_files.append((mfiles[i][0],mfiles[i][1],mfiles[i][2],analysis_table));
+       meta_files.append((mfiles[i][0],mfiles[i][1],mfiles[i][2],dbname,analysis_table));
    p = Pool(processes=nprocs)
    p.map(process_quip,meta_files,1)
 
